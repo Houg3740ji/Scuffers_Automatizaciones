@@ -531,6 +531,224 @@
   .chart-wrap { flex: 1; position: relative; min-height: 0; }
   .chart-wrap canvas { max-height: 100% !important; }
 
+  /* SLACK LOG PANEL */
+  #slack-panel {
+    position: fixed; top: 0; right: -440px; bottom: 0; width: 420px; z-index: 300;
+    background: var(--surface); border-left: 1px solid #3a1f6e;
+    display: flex; flex-direction: column;
+    transition: right 0.3s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: -20px 0 60px rgba(0,0,0,0.6);
+  }
+  #slack-panel.open { right: 0; }
+  .slack-header {
+    padding: 16px 20px; border-bottom: 1px solid #3a1f6e;
+    background: #1a0a3a;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .slack-logo { font-size: 18px; }
+  .slack-header-title {
+    font-family: var(--display); font-size: 14px; font-weight: 900;
+    letter-spacing: 0.2em; text-transform: uppercase; color: #b39ddb;
+  }
+  .slack-channel {
+    font-size: 9px; color: #7c5cbf; letter-spacing: 0.1em;
+    background: rgba(124,92,191,0.15); padding: 2px 7px; border: 1px solid #3a1f6e;
+  }
+  .slack-close {
+    margin-left: auto; font-family: var(--display); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.1em; padding: 5px 10px; border: 1px solid #3a1f6e;
+    background: transparent; color: #7c5cbf; cursor: pointer; transition: all 0.15s;
+  }
+  .slack-close:hover { border-color: #b39ddb; color: #b39ddb; }
+
+  .slack-config-bar {
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+    display: flex; gap: 8px; align-items: center; background: var(--bg);
+  }
+  .slack-config-bar input {
+    flex: 1; background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); padding: 6px 10px; font-family: var(--mono); font-size: 10px;
+    outline: none;
+  }
+  .slack-config-bar input:focus { border-color: #7c5cbf; }
+  .slack-config-bar button {
+    font-family: var(--display); font-size: 9px; font-weight: 900; letter-spacing: 0.1em;
+    padding: 6px 12px; background: #4a1f8a; color: #b39ddb; border: none; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .slack-config-bar button:hover { background: #6a3faa; }
+
+  .slack-stats {
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+    display: flex; gap: 16px; background: var(--surface);
+  }
+  .slack-stat { text-align: center; }
+  .slack-stat-val { font-family: var(--display); font-size: 18px; font-weight: 900; }
+  .slack-stat-val.sent { color: #4caf50; }
+  .slack-stat-val.pending { color: var(--amber-bright); }
+  .slack-stat-val.failed { color: var(--red-bright); }
+  .slack-stat-label { font-size: 9px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+
+  .slack-list { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .slack-empty { padding: 40px 20px; text-align: center; color: var(--muted); font-size: 11px; }
+
+  .slack-notification {
+    border: 1px solid var(--border); background: var(--bg); padding: 12px;
+    border-left: 3px solid transparent; transition: border-color 0.2s;
+  }
+  .slack-notification.status-sent    { border-left-color: #4caf50; }
+  .slack-notification.status-pending { border-left-color: var(--amber-bright); }
+  .slack-notification.status-failed  { border-left-color: var(--red-bright); }
+  .slack-notification.status-approved { border-left-color: var(--green); background: rgba(43,117,81,0.05); }
+  .slack-notification.status-rejected { border-left-color: var(--red); background: rgba(192,57,43,0.05); opacity: 0.7; }
+
+  .slack-notif-top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .slack-notif-id { font-size: 10px; color: var(--muted); }
+  .slack-notif-status {
+    font-family: var(--display); font-size: 9px; font-weight: 900; letter-spacing: 0.1em;
+    padding: 1px 6px; margin-left: auto;
+  }
+  .s-sent     { background: rgba(76,175,80,0.2);  color: #4caf50; }
+  .s-pending  { background: rgba(243,156,18,0.15); color: var(--amber-bright); }
+  .s-failed   { background: rgba(231,76,60,0.2);   color: var(--red-bright); }
+  .s-approved { background: rgba(43,117,81,0.3);   color: var(--green-bright); }
+  .s-rejected { background: rgba(192,57,43,0.2);   color: var(--red-bright); }
+
+  .slack-notif-msg { font-size: 10px; color: #ccc; line-height: 1.5; margin-bottom: 8px; }
+  .slack-notif-meta { font-size: 9px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+  .slack-notif-meta span { background: var(--surface2); padding: 1px 5px; }
+  .slack-notif-actions { display: flex; gap: 6px; }
+  .slack-btn-approve {
+    font-family: var(--display); font-size: 9px; font-weight: 900; letter-spacing: 0.1em;
+    padding: 4px 10px; background: rgba(43,117,81,0.3); color: var(--green-bright);
+    border: 1px solid var(--green-dim); cursor: pointer; transition: all 0.15s; flex: 1;
+  }
+  .slack-btn-approve:hover { background: var(--green); color: white; }
+  .slack-btn-reject {
+    font-family: var(--display); font-size: 9px; font-weight: 900; letter-spacing: 0.1em;
+    padding: 4px 10px; background: transparent; color: var(--red);
+    border: 1px solid rgba(192,57,43,0.4); cursor: pointer; transition: all 0.15s;
+  }
+  .slack-btn-reject:hover { background: var(--red); color: white; }
+  .slack-btn-open {
+    font-family: var(--display); font-size: 9px; font-weight: 900; letter-spacing: 0.1em;
+    padding: 4px 10px; background: transparent; color: #b39ddb;
+    border: 1px solid #3a1f6e; cursor: pointer; transition: all 0.15s;
+  }
+  .slack-btn-open:hover { background: rgba(124,92,191,0.2); }
+
+  .slack-preview-wrap {
+    margin: 0 10px 10px; border: 1px solid #3a1f6e; background: #1a0a3a;
+    padding: 12px; font-size: 10px; color: #b39ddb; border-radius: 2px;
+  }
+  .slack-preview-title { font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+  .slack-preview-sub { color: #7c5cbf; font-size: 9px; margin-bottom: 8px; }
+  .slack-preview-field { margin-bottom: 3px; }
+  .slack-preview-field strong { color: var(--text); }
+  .slack-preview-divider { height: 1px; background: #3a1f6e; margin: 8px 0; }
+  .slack-preview-btn {
+    display: inline-block; padding: 4px 10px; background: #4a1f8a;
+    color: white; font-size: 9px; font-weight: 700; margin-top: 6px; margin-right: 4px;
+  }
+  .slack-preview-btn.primary { background: #2B7551; }
+
+  /* DOCUMENTATION */
+  #docs {
+    position: fixed; inset: 0; z-index: 250;
+    background: var(--bg); display: none; flex-direction: column;
+  }
+  #docs.active { display: flex; }
+  .docs-header {
+    padding: 14px 24px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 16px; background: var(--surface); flex-shrink: 0;
+  }
+  .docs-title {
+    font-family: var(--display); font-size: 18px; font-weight: 900;
+    letter-spacing: 0.25em; text-transform: uppercase;
+  }
+  .docs-close {
+    margin-left: auto; font-family: var(--display); font-size: 11px; font-weight: 900;
+    letter-spacing: 0.15em; padding: 6px 14px; border: 1px solid var(--border);
+    background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s;
+  }
+  .docs-close:hover { border-color: var(--text); color: var(--text); }
+  .docs-body { display: flex; flex: 1; overflow: hidden; }
+  .docs-sidebar {
+    width: 220px; border-right: 1px solid var(--border); overflow-y: auto;
+    flex-shrink: 0; padding: 16px 0; background: var(--surface);
+  }
+  .docs-nav-section {
+    font-family: var(--display); font-size: 9px; font-weight: 900;
+    letter-spacing: 0.2em; color: var(--muted); padding: 10px 20px 4px; text-transform: uppercase;
+  }
+  .docs-nav-item {
+    display: block; width: 100%; text-align: left; padding: 8px 20px;
+    font-family: var(--mono); font-size: 11px; color: var(--muted);
+    background: transparent; border: none; cursor: pointer; transition: all 0.15s;
+    border-left: 2px solid transparent; letter-spacing: 0.03em;
+  }
+  .docs-nav-item:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+  .docs-nav-item.active { color: var(--green-bright); border-left-color: var(--green); background: rgba(43,117,81,0.08); }
+  .docs-content { flex: 1; overflow-y: auto; padding: 32px 40px; max-width: 860px; }
+  .docs-section { display: none; }
+  .docs-section.active { display: block; }
+  .docs-h1 {
+    font-family: var(--display); font-size: 26px; font-weight: 900; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text); margin-bottom: 8px;
+  }
+  .docs-h2 {
+    font-family: var(--display); font-size: 16px; font-weight: 900; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--green-bright); margin: 28px 0 10px;
+    border-bottom: 1px solid var(--border); padding-bottom: 6px;
+  }
+  .docs-h3 {
+    font-family: var(--display); font-size: 12px; font-weight: 900; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text); margin: 18px 0 6px;
+  }
+  .docs-p { font-size: 12px; color: #bbb; line-height: 1.8; margin-bottom: 12px; }
+  .docs-lead { font-size: 13px; color: #ddd; line-height: 1.7; margin-bottom: 20px; border-left: 3px solid var(--green); padding-left: 14px; }
+  .docs-code {
+    background: var(--surface2); border: 1px solid var(--border); padding: 12px 16px;
+    font-family: var(--mono); font-size: 11px; color: #a8d8a8; margin: 10px 0 16px;
+    overflow-x: auto; white-space: pre; line-height: 1.6;
+  }
+  .docs-inline { background: var(--surface2); padding: 1px 6px; font-family: var(--mono); font-size: 10px; color: #a8d8a8; }
+  .docs-table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 11px; }
+  .docs-table th {
+    text-align: left; padding: 8px 12px; background: var(--surface2);
+    font-family: var(--display); font-size: 9px; font-weight: 900; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border);
+  }
+  .docs-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: #ccc; vertical-align: top; }
+  .docs-table tr:hover td { background: var(--surface); }
+  .docs-tag { display: inline-block; padding: 1px 7px; font-family: var(--display); font-size: 9px; font-weight: 900; letter-spacing: 0.1em; margin: 1px; }
+  .docs-tag-crit { background: rgba(231,76,60,0.2);  color: var(--red-bright); }
+  .docs-tag-warn { background: rgba(243,156,18,0.15); color: var(--amber-bright); }
+  .docs-tag-ok   { background: rgba(43,117,81,0.2);   color: var(--green-bright); }
+  .docs-tag-info { background: rgba(41,128,185,0.2);  color: #5dade2; }
+  .docs-callout {
+    padding: 12px 16px; border: 1px solid; margin: 14px 0; font-size: 11px; line-height: 1.7;
+  }
+  .docs-callout.green { border-color: var(--green-dim); background: rgba(43,117,81,0.08); color: #9dd5b5; }
+  .docs-callout.amber { border-color: rgba(243,156,18,0.3); background: rgba(243,156,18,0.05); color: #f0c070; }
+  .docs-callout.blue  { border-color: #1a5276; background: rgba(41,128,185,0.08); color: #7fb3d3; }
+  .docs-step {
+    display: flex; gap: 14px; align-items: flex-start; margin-bottom: 14px; padding: 12px;
+    background: var(--surface); border: 1px solid var(--border);
+  }
+  .docs-step-num {
+    font-family: var(--display); font-size: 20px; font-weight: 900;
+    color: var(--green); flex-shrink: 0; min-width: 28px; line-height: 1;
+  }
+  .docs-step-body { font-size: 11px; color: #bbb; line-height: 1.7; }
+  .docs-step-body strong { color: var(--text); }
+  .docs-toc { display: flex; flex-direction: column; gap: 4px; margin: 16px 0; }
+  .docs-toc-item {
+    font-size: 11px; color: var(--muted); padding: 4px 10px; border-left: 2px solid var(--border);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .docs-toc-item:hover { color: var(--green-bright); border-left-color: var(--green); }
+
   /* FILE UPLOAD */
   .de-upload {
     font-family: var(--display); font-size: 10px; font-weight: 900; letter-spacing: 0.15em;
@@ -710,6 +928,8 @@
     <button id="btn-dashboard" onclick="openDashboard()" class="admin-only" style="font-family:var(--display);font-size:13px;font-weight:900;letter-spacing:0.2em;text-transform:uppercase;padding:8px 18px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='var(--green)';this.style.color='var(--green-bright)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">📈 DASHBOARD</button>
     <button id="btn-datos" onclick="openDataExplorer()" class="admin-only" style="font-family:var(--display);font-size:13px;font-weight:900;letter-spacing:0.2em;text-transform:uppercase;padding:8px 18px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='var(--green)';this.style.color='var(--green-bright)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">📊 DATOS</button>
     <button id="api-key-btn" onclick="openApiSettings()" class="admin-only" style="font-family:var(--display);font-size:11px;font-weight:900;letter-spacing:0.15em;text-transform:uppercase;padding:8px 14px;border:1px solid var(--red);background:transparent;color:var(--red);cursor:pointer;transition:all 0.2s">⚙ API KEY</button>
+    <button onclick="openSlackPanel()" class="admin-only" id="slack-btn" style="font-family:var(--display);font-size:13px;font-weight:900;letter-spacing:0.2em;text-transform:uppercase;padding:8px 18px;border:1px solid #3a1f6e;background:transparent;color:#7c5cbf;cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='#b39ddb';this.style.color='#b39ddb'" onmouseout="if(!slackWebhookUrl){this.style.borderColor='#3a1f6e';this.style.color='#7c5cbf'}">🔔 SLACK</button>
+    <button onclick="openDocs()" class="admin-only" style="font-family:var(--display);font-size:13px;font-weight:900;letter-spacing:0.2em;text-transform:uppercase;padding:8px 18px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='#5dade2';this.style.color='#5dade2'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">📖 DOCS</button>
     <button id="war-room-toggle" class="admin-only" onclick="toggleWarRoom()">⬛ WAR ROOM</button>
   </div>
 </div>
@@ -924,6 +1144,364 @@
   </div>
 </div>
 
+<!-- SLACK PANEL -->
+<div id="slack-panel">
+  <div class="slack-header">
+    <span class="slack-logo">🔔</span>
+    <span class="slack-header-title">SLACK NOTIFICATIONS</span>
+    <span class="slack-channel" id="slack-channel-name">#scuffers-ops</span>
+    <button class="slack-close" onclick="closeSlackPanel()">CERRAR ✕</button>
+  </div>
+  <div class="slack-config-bar">
+    <input type="text" id="slack-webhook-input" placeholder="https://hooks.slack.com/services/..." autocomplete="off">
+    <button onclick="saveSlackWebhook()">GUARDAR</button>
+    <button onclick="testSlackWebhook()" style="background:transparent;border:1px solid #3a1f6e;color:#7c5cbf;font-family:var(--display);font-size:9px;font-weight:900;letter-spacing:0.1em;padding:6px 12px;cursor:pointer">TEST</button>
+  </div>
+  <div class="slack-stats">
+    <div class="slack-stat"><div class="slack-stat-val sent" id="slack-stat-sent">0</div><div class="slack-stat-label">ENVIADOS</div></div>
+    <div class="slack-stat"><div class="slack-stat-val pending" id="slack-stat-pending">0</div><div class="slack-stat-label">PENDIENTES</div></div>
+    <div class="slack-stat"><div class="slack-stat-val failed" id="slack-stat-failed">0</div><div class="slack-stat-label">FALLIDOS</div></div>
+    <div class="slack-stat" style="margin-left:auto;display:flex;align-items:center">
+      <button onclick="queueSlackNotifications(true)" style="font-family:var(--display);font-size:9px;font-weight:900;letter-spacing:0.1em;padding:6px 10px;background:#4a1f8a;color:#b39ddb;border:none;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='#6a3faa'" onmouseout="this.style.background='#4a1f8a'">↻ REENVIAR TODO</button>
+    </div>
+  </div>
+  <div class="slack-list" id="slack-list">
+    <div class="slack-empty">No hay notificaciones enviadas aún.<br><br>Configura el webhook y los tickets HUMANO se notificarán automáticamente.</div>
+  </div>
+</div>
+
+<!-- DOCUMENTATION OVERLAY -->
+<div id="docs">
+  <div class="docs-header">
+    <div style="font-size:20px">📖</div>
+    <div class="docs-title">Scuffers OPS Brain — Documentación</div>
+    <div style="font-size:10px;color:var(--muted);letter-spacing:0.1em;margin-left:8px">v1.0</div>
+    <button class="docs-close" onclick="closeDocs()">CERRAR ✕</button>
+  </div>
+  <div class="docs-body">
+    <!-- SIDEBAR -->
+    <div class="docs-sidebar">
+      <div class="docs-nav-section">GENERAL</div>
+      <button class="docs-nav-item" data-section="overview" onclick="showDocsSection('overview')">🏠 Visión General</button>
+      <button class="docs-nav-item" data-section="quickstart" onclick="showDocsSection('quickstart')">🚀 Primeros Pasos</button>
+      <div class="docs-nav-section">FUNCIONES</div>
+      <button class="docs-nav-item" data-section="alerts" onclick="showDocsSection('alerts')">⚡ Motor de Alertas</button>
+      <button class="docs-nav-item" data-section="tickets" onclick="showDocsSection('tickets')">🎫 Cola de Tickets</button>
+      <button class="docs-nav-item" data-section="warroom" onclick="showDocsSection('warroom')">⚠ War Room AI</button>
+      <button class="docs-nav-item" data-section="dashboard" onclick="showDocsSection('dashboard')">📈 Dashboard</button>
+      <div class="docs-nav-section">INTEGRACIONES</div>
+      <button class="docs-nav-item" data-section="slack" onclick="showDocsSection('slack')">🔔 Slack</button>
+      <button class="docs-nav-item" data-section="logistics" onclick="showDocsSection('logistics')">🚚 API Logística</button>
+      <div class="docs-nav-section">ADMINISTRACIÓN</div>
+      <button class="docs-nav-item" data-section="roles" onclick="showDocsSection('roles')">👤 Sistema de Roles</button>
+      <button class="docs-nav-item" data-section="explorer" onclick="showDocsSection('explorer')">📊 Explorador de Datos</button>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="docs-content">
+
+      <!-- ── OVERVIEW ── -->
+      <div class="docs-section" id="docs-overview">
+        <div class="docs-h1">Visión General</div>
+        <p class="docs-lead">Scuffers OPS Brain es el centro de control operacional de Scuffers — una plataforma de inteligencia en tiempo real que combina clasificación automática de tickets, alertas proactivas de inventario y logística, y un asistente AI para tomar decisiones durante lanzamientos de alta demanda.</p>
+        <div class="docs-h2">¿Qué hace?</div>
+        <div class="docs-toc">
+          <div class="docs-toc-item" onclick="showDocsSection('alerts')">⚡ Motor de alertas — detecta riesgos de stock, campaña y logística en tiempo real</div>
+          <div class="docs-toc-item" onclick="showDocsSection('tickets')">🎫 Cola de tickets IA — clasifica y responde automáticamente el 60–70% de tickets</div>
+          <div class="docs-toc-item" onclick="showDocsSection('warroom')">⚠ War Room — AI con contexto operacional completo para decisiones críticas</div>
+          <div class="docs-toc-item" onclick="showDocsSection('dashboard')">📈 Dashboard — KPIs y gráficas en tiempo real de toda la operación</div>
+          <div class="docs-toc-item" onclick="showDocsSection('slack')">🔔 Slack — notificaciones automáticas a tu equipo para tickets que requieren acción humana</div>
+          <div class="docs-toc-item" onclick="showDocsSection('logistics')">🚚 Logística — estado de envío en tiempo real por pedido con riesgo de retraso</div>
+        </div>
+        <div class="docs-h2">Arquitectura</div>
+        <p class="docs-p">La aplicación es un archivo HTML autocontenido (<span class="docs-inline">index.html</span>) sin dependencias de servidor ni base de datos. Todos los datos se cargan desde CSVs al inicio y se procesan completamente en el navegador. Las únicas llamadas externas son:</p>
+        <table class="docs-table">
+          <thead><tr><th>Servicio</th><th>Uso</th><th>Configuración</th></tr></thead>
+          <tbody>
+            <tr><td>Anthropic API</td><td>Borradores de tickets + War Room AI</td><td>⚙ API KEY en topbar</td></tr>
+            <tr><td>Supabase Edge Function</td><td>Estado de envío en tiempo real</td><td>Automático (candidato SCF-2026-2649)</td></tr>
+            <tr><td>Slack Incoming Webhook</td><td>Notificaciones a canal del equipo</td><td>🔔 SLACK en topbar</td></tr>
+          </tbody>
+        </table>
+        <div class="docs-callout green">Esta aplicación fue construida como prototipo funcional para el lanzamiento de cápsulas de alta demanda. No requiere backend propio — despliega en Vercel con un solo comando.</div>
+      </div>
+
+      <!-- ── QUICKSTART ── -->
+      <div class="docs-section" id="docs-quickstart">
+        <div class="docs-h1">Primeros Pasos</div>
+        <p class="docs-lead">La aplicación arranca automáticamente cargando los 6 archivos CSV de datos. Para activar todas las funciones sigue estos pasos:</p>
+        <div class="docs-h2">Setup Básico</div>
+        <div class="docs-step"><div class="docs-step-num">1</div><div class="docs-step-body"><strong>Abre la app</strong> desde <span class="docs-inline">http://localhost:8080</span> o desde la URL de Vercel. Si la abres como <span class="docs-inline">file://</span> los CSVs no se cargarán — necesitas un servidor HTTP.</div></div>
+        <div class="docs-step"><div class="docs-step-num">2</div><div class="docs-step-body"><strong>Espera el boot</strong> — la barra de carga procesa los 6 CSVs, construye el modelo de datos, ejecuta el motor de alertas y clasifica todos los tickets. Tarda 2–5 segundos.</div></div>
+        <div class="docs-step"><div class="docs-step-num">3</div><div class="docs-step-body"><strong>Configura la API Key de Claude</strong> — haz clic en <span class="docs-inline">⚙ API KEY</span> en el topbar y pega tu <span class="docs-inline">sk-ant-api03-...</span>. Esto activa la generación de borradores y el War Room AI.</div></div>
+        <div class="docs-step"><div class="docs-step-num">4</div><div class="docs-step-body">(Opcional) <strong>Configura Slack</strong> — haz clic en <span class="docs-inline">🔔 SLACK</span>, pega tu Incoming Webhook URL y pulsa GUARDAR. Los tickets HUMANO se notificarán automáticamente.</div></div>
+        <div class="docs-step"><div class="docs-step-num">5</div><div class="docs-step-body"><strong>Explora los paneles</strong> — Alertas (izquierda), Tickets IA (centro), Inventario (derecha). Usa el selector de rol en el topbar para ver la perspectiva de cada equipo.</div></div>
+        <div class="docs-h2">Requisitos Técnicos</div>
+        <table class="docs-table">
+          <thead><tr><th>Requisito</th><th>Detalle</th></tr></thead>
+          <tbody>
+            <tr><td>Navegador</td><td>Chrome, Firefox, Safari, Edge — cualquier navegador moderno</td></tr>
+            <tr><td>Servidor HTTP</td><td>Para carga de CSVs locales: <span class="docs-inline">python -m http.server 8080</span></td></tr>
+            <tr><td>API Key Claude</td><td>Opcional — necesaria para borradores AI y War Room</td></tr>
+            <tr><td>Webhook Slack</td><td>Opcional — para notificaciones al equipo</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ── ALERTS ── -->
+      <div class="docs-section" id="docs-alerts">
+        <div class="docs-h1">Motor de Alertas</div>
+        <p class="docs-lead">El motor de alertas analiza continuamente los datos operacionales y genera alertas proactivas en tres niveles de severidad. Se ejecuta al arrancar y se actualiza cada 60 segundos, y también tras la carga de datos logísticos.</p>
+        <div class="docs-h2">Niveles de Severidad</div>
+        <table class="docs-table">
+          <thead><tr><th>Nivel</th><th>Color</th><th>Cuándo se genera</th></tr></thead>
+          <tbody>
+            <tr><td><span class="docs-tag docs-tag-crit">CRITICAL</span></td><td>Rojo</td><td>Campaña activa + stock &lt; 10 uds, múltiples intentos de entrega fallidos, pedido en payment_review con ticket VIP</td></tr>
+            <tr><td><span class="docs-tag docs-tag-warn">WARNING</span></td><td>Ámbar</td><td>STR &gt; 70% sin reposición, pedido retrasado con ticket abierto, campaña activa con stock &lt; 25 uds</td></tr>
+            <tr><td><span class="docs-tag docs-tag-ok">INFO</span></td><td>Verde</td><td>Stock bajo pero con reposición en camino, pedido en payment_review sin ticket</td></tr>
+          </tbody>
+        </table>
+        <div class="docs-h2">Reglas de Alertas Actuales</div>
+        <table class="docs-table">
+          <thead><tr><th>Regla</th><th>Condición</th><th>Severidad</th></tr></thead>
+          <tbody>
+            <tr><td>Campaña activa + stock crítico</td><td>campaign.status = 'active' AND available &lt; 10</td><td><span class="docs-tag docs-tag-crit">CRITICAL</span></td></tr>
+            <tr><td>Campaña activa + stock bajo</td><td>campaign.status = 'active' AND available &lt; 25</td><td><span class="docs-tag docs-tag-warn">WARNING</span></td></tr>
+            <tr><td>Alta venta sin reposición</td><td>STR &gt; 70% AND incoming_units = 0</td><td><span class="docs-tag docs-tag-warn">WARNING</span></td></tr>
+            <tr><td>Entrega fallida múltiple</td><td>delivery_attempts ≥ 2</td><td><span class="docs-tag docs-tag-crit">CRITICAL</span></td></tr>
+            <tr><td>Envío retrasado con ticket</td><td>shipping_status = 'delayed' AND ticket abierto</td><td><span class="docs-tag docs-tag-warn">WARNING</span></td></tr>
+            <tr><td>Payment review activo</td><td>order_status = 'payment_review'</td><td><span class="docs-tag docs-tag-info">INFO</span></td></tr>
+          </tbody>
+        </table>
+        <div class="docs-callout amber">Si hay 2 o más alertas CRITICAL, el botón WAR ROOM pulsa automáticamente para indicar que se debe activar el modo de crisis.</div>
+        <div class="docs-h2">Visibilidad por Rol</div>
+        <p class="docs-p">Los usuarios con rol <strong>ADMIN</strong> ven todas las alertas. Los de rol <strong>CUSTOMER SUCCESS</strong> solo ven alertas relacionadas con tickets de soporte (campo <span class="docs-inline">isTicketAlert: true</span>). Los <strong>AGENTES</strong> no ven el panel de alertas.</p>
+      </div>
+
+      <!-- ── TICKETS ── -->
+      <div class="docs-section" id="docs-tickets">
+        <div class="docs-h1">Cola de Tickets</div>
+        <p class="docs-lead">El motor de clasificación de tickets analiza cada mensaje entrante y decide automáticamente si puede resolverse con una respuesta predefinida (AUTO) o si necesita revisión humana (HUMANO).</p>
+        <div class="docs-h2">Lógica de Clasificación</div>
+        <p class="docs-p">Un ticket va a la cola <strong>HUMANO</strong> si cumple cualquiera de estas condiciones:</p>
+        <table class="docs-table">
+          <thead><tr><th>Condición</th><th>Motivo</th></tr></thead>
+          <tbody>
+            <tr><td>Cliente con <span class="docs-inline">is_vip = true</span></td><td>Requiere trato personalizado</td></tr>
+            <tr><td>Pedido en <span class="docs-inline">payment_review</span></td><td>Problema de pago activo</td></tr>
+            <tr><td>Urgencia <span class="docs-inline">urgent</span></td><td>Máxima prioridad</td></tr>
+            <tr><td>Intent <span class="docs-inline">cambio_direccion</span></td><td>Requiere acción operativa real</td></tr>
+          </tbody>
+        </table>
+        <p class="docs-p">Si no cumple ninguna condición HUMANO, el ticket va a <strong>AUTO</strong> siempre que sea un pedido en estado <span class="docs-inline">paid</span> o <span class="docs-inline">packed</span> con un intent resolvible (tracking, stock, regalo, express).</p>
+        <div class="docs-h2">Intents Detectados</div>
+        <table class="docs-table">
+          <thead><tr><th>Intent</th><th>Palabras clave</th><th>Respuesta automática</th></tr></thead>
+          <tbody>
+            <tr><td>consulta_tracking</td><td>tracking, llegará, antes del, movimiento</td><td>Confirmación de envío + ETA</td></tr>
+            <tr><td>ansiedad_stock</td><td>agot, stock</td><td>Confirmación de unidad reservada</td></tr>
+            <tr><td>confirmacion_regalo</td><td>regalo, confirmación</td><td>Confirmación + opción mensaje regalo</td></tr>
+            <tr><td>express_concern</td><td>express, prioridad, urgen</td><td>Confirmación de prioridad express</td></tr>
+            <tr><td>cambio_direccion</td><td>dirección, cambiar, cambio</td><td>→ HUMANO siempre</td></tr>
+            <tr><td>consulta_general</td><td>(resto)</td><td>Respuesta genérica</td></tr>
+          </tbody>
+        </table>
+        <div class="docs-h2">Flujo de Aprobación (Cola HUMANO)</div>
+        <div class="docs-step"><div class="docs-step-num">1</div><div class="docs-step-body">El ticket entra en la cola HUMANO con un <strong>borrador generado por Claude Haiku</strong> — tono cercano, sin jerga corporativa, firmado como Scuffers.</div></div>
+        <div class="docs-step"><div class="docs-step-num">2</div><div class="docs-step-body">El agente de CS puede <strong>APROBAR</strong> (marca como enviado), <strong>EDITAR</strong> el texto antes de aprobar, o <strong>RECHAZAR</strong> (escala a equipo para redactar manualmente).</div></div>
+        <div class="docs-step"><div class="docs-step-num">3</div><div class="docs-step-body">Si Slack está configurado, el ticket también aparece en el canal con botones de acción. La decisión tomada en Slack se sincroniza con el dashboard.</div></div>
+        <div class="docs-callout blue">Las respuestas automáticas incluyen el ETA real del pedido cuando están disponibles los datos logísticos de la API de envíos.</div>
+      </div>
+
+      <!-- ── WAR ROOM ── -->
+      <div class="docs-section" id="docs-warroom">
+        <div class="docs-h1">War Room AI</div>
+        <p class="docs-lead">El War Room es un asistente de inteligencia artificial con contexto operacional completo. A diferencia de un chatbot genérico, tiene acceso a todos los datos de la sesión: pedidos, tickets, inventario, campañas activas, y estado logístico en tiempo real.</p>
+        <div class="docs-h2">Cómo Activarlo</div>
+        <div class="docs-step"><div class="docs-step-num">1</div><div class="docs-step-body">Haz clic en <strong>⬛ WAR ROOM</strong> en el topbar. El botón pulsa en rojo cuando hay ≥2 alertas críticas activas.</div></div>
+        <div class="docs-step"><div class="docs-step-num">2</div><div class="docs-step-body">Configura tu <strong>API Key de Claude</strong> — sin ella el War Room no puede procesar preguntas (aparece el mensaje de configuración).</div></div>
+        <div class="docs-step"><div class="docs-step-num">3</div><div class="docs-step-body">Usa los <strong>chips rápidos</strong> predefinidos o escribe tu pregunta. El AI responde siempre con datos concretos y una acción recomendada.</div></div>
+        <div class="docs-h2">Chips Predefinidos</div>
+        <table class="docs-table">
+          <thead><tr><th>Chip</th><th>Útil para</th></tr></thead>
+          <tbody>
+            <tr><td>¿QUÉ CAMPAÑAS PAUSAR?</td><td>Identificar campañas activas que drenan stock crítico</td></tr>
+            <tr><td>¿HAY VIPs ESPERANDO?</td><td>Ver tickets VIP pendientes con LTV y urgencia</td></tr>
+            <tr><td>¿RIESGO DE STOCKOUT?</td><td>Análisis de SKUs en riesgo de agotarse pronto</td></tr>
+            <tr><td>PEDIDOS PAYMENT REVIEW</td><td>Lista de pedidos bloqueados pendientes de verificación</td></tr>
+            <tr><td>RESUMEN EJECUTIVO</td><td>Overview completo del estado operacional</td></tr>
+          </tbody>
+        </table>
+        <div class="docs-h2">Contexto del Sistema</div>
+        <p class="docs-p">En cada conversación el AI recibe un contexto de sistema que incluye:</p>
+        <ul style="font-size:11px;color:#bbb;line-height:2;padding-left:20px;margin-bottom:16px">
+          <li>Total de pedidos y los en payment_review (con IDs)</li>
+          <li>Todas las alertas críticas generadas</li>
+          <li>Campañas activas con gasto y SKU objetivo</li>
+          <li>SKUs en riesgo con unidades disponibles y STR</li>
+          <li>Tickets VIP con su mensaje y LTV</li>
+          <li>Estado logístico completo de todos los pedidos cargados</li>
+          <li>Inventario ordenado por riesgo</li>
+        </ul>
+        <div class="docs-callout amber">El contexto se genera una vez y se cachea. Si cargas nuevos datos o llegan datos de logística, el contexto se regenera automáticamente en la siguiente pregunta.</div>
+      </div>
+
+      <!-- ── DASHBOARD ── -->
+      <div class="docs-section" id="docs-dashboard">
+        <div class="docs-h1">Dashboard</div>
+        <p class="docs-lead">El Dashboard muestra KPIs clave y 5 gráficas interactivas en tiempo real sobre el estado de la operación. Se actualiza automáticamente cada 60 segundos y cuando se cargan nuevos datos.</p>
+        <div class="docs-h2">KPIs Disponibles</div>
+        <table class="docs-table">
+          <thead><tr><th>KPI</th><th>Fuente</th><th>Descripción</th></tr></thead>
+          <tbody>
+            <tr><td>PEDIDOS TOTALES</td><td>orders.csv</td><td>Número total de pedidos + desglose por estado</td></tr>
+            <tr><td>REVENUE ESTIMADO</td><td>orders.csv</td><td>Suma de order_value de todos los pedidos</td></tr>
+            <tr><td>SKUs CRÍTICOS</td><td>inventory.csv</td><td>SKUs con menos de 10 unidades disponibles</td></tr>
+            <tr><td>TICKETS ABIERTOS</td><td>support_tickets.csv</td><td>Total de tickets + desglose AUTO/HUMANO</td></tr>
+            <tr><td>RIESGO RETRASO &gt;60%</td><td>API Logística</td><td>Pedidos con delay_risk ≥ 0.6</td></tr>
+          </tbody>
+        </table>
+        <div class="docs-h2">Gráficas</div>
+        <table class="docs-table">
+          <thead><tr><th>Gráfica</th><th>Tipo</th><th>Datos</th></tr></thead>
+          <tbody>
+            <tr><td>Pedidos por Estado</td><td>Donut</td><td>Distribución paid / processing / packed / payment_review</td></tr>
+            <tr><td>Tickets por Canal y Urgencia</td><td>Barras apiladas</td><td>email / chat / instagram_dm × urgencia</td></tr>
+            <tr><td>Estado Logístico</td><td>Donut</td><td>Distribución de estados de envío (API)</td></tr>
+            <tr><td>Inventario por SKU</td><td>Barras horizontales</td><td>Unidades disponibles + reservadas, color por riesgo</td></tr>
+            <tr><td>Sell-Through Rate</td><td>Barras verticales</td><td>STR/hora top 10 SKUs, rojo si &gt;70%</td></tr>
+          </tbody>
+        </table>
+        <div class="docs-callout green">La gráfica de logística solo muestra datos cuando la API de envíos ha cargado. Si aparece vacía, espera a que termine la carga inicial de shipping.</div>
+      </div>
+
+      <!-- ── SLACK ── -->
+      <div class="docs-section" id="docs-slack">
+        <div class="docs-h1">Integración Slack</div>
+        <p class="docs-lead">OPS Brain envía notificaciones automáticas a tu canal de Slack cuando un ticket requiere acción humana. Desde el panel de Slack puedes aprobar o rechazar la respuesta sin salir del chat.</p>
+        <div class="docs-h2">Configuración</div>
+        <div class="docs-step"><div class="docs-step-num">1</div><div class="docs-step-body">En Slack, ve a <strong>Tu workspace → Apps → Incoming Webhooks</strong> y crea un nuevo webhook para el canal <span class="docs-inline">#scuffers-ops</span> (o el que prefieras).</div></div>
+        <div class="docs-step"><div class="docs-step-num">2</div><div class="docs-step-body">Copia la URL del webhook: <span class="docs-inline">https://hooks.slack.com/services/T.../B.../...</span></div></div>
+        <div class="docs-step"><div class="docs-step-num">3</div><div class="docs-step-body">En OPS Brain, haz clic en <strong>🔔 SLACK</strong> en el topbar, pega la URL y pulsa <strong>GUARDAR</strong>. Los tickets HUMANO existentes se enviarán inmediatamente.</div></div>
+        <div class="docs-step"><div class="docs-step-num">4</div><div class="docs-step-body">Usa el botón <strong>TEST</strong> para verificar que el webhook funciona — recibirás un mensaje de prueba en tu canal.</div></div>
+        <div class="docs-h2">Contenido de las Notificaciones</div>
+        <p class="docs-p">Cada notificación incluye:</p>
+        <ul style="font-size:11px;color:#bbb;line-height:2;padding-left:20px;margin-bottom:16px">
+          <li>ID del ticket y del pedido</li>
+          <li>Mensaje exacto del cliente</li>
+          <li>Urgencia y canal de entrada</li>
+          <li>Estado del pedido y estado logístico en tiempo real</li>
+          <li>Riesgo de retraso del envío</li>
+          <li>Indicador VIP con LTV si aplica</li>
+          <li>Botón "Ver en Dashboard →" para ir directamente al ticket</li>
+        </ul>
+        <div class="docs-h2">Flujo de Aprobación desde Slack</div>
+        <p class="docs-p">Dentro del panel de Slack en OPS Brain puedes ver todas las notificaciones enviadas con sus botones de acción:</p>
+        <table class="docs-table">
+          <thead><tr><th>Botón</th><th>Efecto</th></tr></thead>
+          <tbody>
+            <tr><td>✓ APROBAR</td><td>Marca el ticket como enviado en el dashboard principal</td></tr>
+            <tr><td>✗ RECHAZAR</td><td>Escala el ticket a redacción manual</td></tr>
+            <tr><td>→ VER TICKET</td><td>Cierra el panel y hace scroll hasta el ticket en el dashboard</td></tr>
+          </tbody>
+        </table>
+        <div class="docs-callout amber">Nota: Los Incoming Webhooks de Slack son unidireccionales (app → Slack). Los botones interactivos dentro del chat de Slack requieren una Slack App con backend propio. Los botones de acción en OPS Brain son la alternativa demo funcional.</div>
+      </div>
+
+      <!-- ── LOGISTICS ── -->
+      <div class="docs-section" id="docs-logistics">
+        <div class="docs-h1">API Logística</div>
+        <p class="docs-lead">OPS Brain consulta la API de logística en tiempo real para obtener el estado de envío de cada pedido. Los datos se usan para enriquecer las respuestas automáticas, las alertas, y la vista del War Room.</p>
+        <div class="docs-h2">Endpoint</div>
+        <div class="docs-code">GET https://lkuutmnykcnbfmbpopcu.functions.supabase.co/api/shipping-status/{order_id}
+Header: X-Candidate-Id: SCF-2026-2649</div>
+        <div class="docs-h2">Campos de Respuesta</div>
+        <table class="docs-table">
+          <thead><tr><th>Campo</th><th>Tipo</th><th>Descripción</th></tr></thead>
+          <tbody>
+            <tr><td>order_id</td><td>string</td><td>ID del pedido</td></tr>
+            <tr><td>shipping_status</td><td>string</td><td>Estado actual: delivered, out_for_delivery, in_transit, at_sorting_center, picked_up, label_created, delayed</td></tr>
+            <tr><td>estimated_delivery_date</td><td>date</td><td>Fecha estimada de entrega (YYYY-MM-DD)</td></tr>
+            <tr><td>delay_risk</td><td>float</td><td>Probabilidad de retraso 0–1. &gt;0.6 = crítico</td></tr>
+            <tr><td>delay_reason</td><td>string?</td><td>weather, customs_hold, high_volume — si hay retraso</td></tr>
+            <tr><td>delivery_attempts</td><td>int</td><td>Intentos de entrega fallidos</td></tr>
+            <tr><td>requires_manual_review</td><td>bool</td><td>Si el pedido necesita intervención manual</td></tr>
+          </tbody>
+        </table>
+        <div class="docs-h2">Carga y Visualización</div>
+        <p class="docs-p">La carga se hace en lotes de 5 pedidos en paralelo para no saturar la API. Los datos aparecen progresivamente en cada ticket conforme se reciben. El indicador <span class="docs-inline">cargando envío · · ·</span> se reemplaza con el estado real.</p>
+        <div class="docs-h2">Indicadores de Estado</div>
+        <table class="docs-table">
+          <thead><tr><th>Estado</th><th>Icono</th><th>Color</th></tr></thead>
+          <tbody>
+            <tr><td>ENTREGADO</td><td>✓</td><td>Verde</td></tr>
+            <tr><td>EN REPARTO</td><td>▶</td><td>Verde brillante (animado)</td></tr>
+            <tr><td>EN TRÁNSITO</td><td>→</td><td>Azul</td></tr>
+            <tr><td>EN CENTRO</td><td>⟳</td><td>Azul</td></tr>
+            <tr><td>RECOGIDO</td><td>↑</td><td>Azul</td></tr>
+            <tr><td>ETIQUETA LISTA</td><td>○</td><td>Gris</td></tr>
+            <tr><td>RETRASADO</td><td>⚠</td><td>Rojo</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ── ROLES ── -->
+      <div class="docs-section" id="docs-roles">
+        <div class="docs-h1">Sistema de Roles</div>
+        <p class="docs-lead">OPS Brain tiene 3 roles diseñados para diferentes miembros del equipo. El rol activo se cambia desde el selector en el topbar — no requiere login, es una vista adaptativa del mismo dashboard.</p>
+        <div class="docs-h2">Roles Disponibles</div>
+        <table class="docs-table">
+          <thead><tr><th>Rol</th><th>Acceso</th><th>Ideal para</th></tr></thead>
+          <tbody>
+            <tr><td>👤 ADMIN</td><td>Todo — alertas, inventario, tickets, dashboards, war room, datos, Slack</td><td>Operations Manager, fundadores</td></tr>
+            <tr><td>🎯 CUSTOMER SUCCESS</td><td>Alertas de tickets, cola HUMANO (aprobar/editar/rechazar), notificaciones Slack</td><td>CS Lead, coordinador de atención</td></tr>
+            <tr><td>💬 AGENTE</td><td>Solo cola de tickets AUTO — sin datos de negocio, sin LTV, sin IDs de pedido</td><td>Agentes de atención al cliente</td></tr>
+          </tbody>
+        </table>
+        <div class="docs-h2">Diferencias de Vista por Rol</div>
+        <table class="docs-table">
+          <thead><tr><th>Elemento</th><th>Admin</th><th>CS</th><th>Agente</th></tr></thead>
+          <tbody>
+            <tr><td>Panel de alertas</td><td>Todas</td><td>Solo alertas de tickets</td><td>Oculto</td></tr>
+            <tr><td>Panel de inventario</td><td>Visible</td><td>Oculto</td><td>Oculto</td></tr>
+            <tr><td>Cola AUTO</td><td>Completa</td><td>Completa</td><td>Sin LTV ni IDs</td></tr>
+            <tr><td>Cola HUMANO</td><td>Completa</td><td>Visible con acciones</td><td>Oculta</td></tr>
+            <tr><td>Dashboard / Datos / Slack</td><td>Visible</td><td>Oculto</td><td>Oculto</td></tr>
+            <tr><td>War Room</td><td>Visible</td><td>Oculto</td><td>Oculto</td></tr>
+          </tbody>
+        </table>
+        <div class="docs-callout green">El rol AGENTE protege datos sensibles de negocio (LTV, IDs de pedido, alertas de inventario) manteniendo al agente enfocado únicamente en responder mensajes de clientes.</div>
+      </div>
+
+      <!-- ── EXPLORER ── -->
+      <div class="docs-section" id="docs-explorer">
+        <div class="docs-h1">Explorador de Datos</div>
+        <p class="docs-lead">El Explorador de Datos permite visualizar, filtrar y exportar todos los datos cargados en la sesión. También permite importar nuevos archivos CSV para actualizar los datos en tiempo real sin recargar la página.</p>
+        <div class="docs-h2">Tabs Disponibles</div>
+        <table class="docs-table">
+          <thead><tr><th>Tab</th><th>Fuente</th><th>Registros típicos</th></tr></thead>
+          <tbody>
+            <tr><td>INVENTARIO</td><td>inventory.csv</td><td>SKUs, unidades, STR, precios</td></tr>
+            <tr><td>PEDIDOS</td><td>orders.csv</td><td>Pedidos con estado, cliente, valor</td></tr>
+            <tr><td>TICKETS</td><td>support_tickets.csv</td><td>Tickets con canal, urgencia, sentimiento</td></tr>
+            <tr><td>CLIENTES</td><td>customers.csv</td><td>Clientes con LTV, VIP, ciudad</td></tr>
+            <tr><td>CAMPAÑAS</td><td>campaigns.csv</td><td>Campañas activas con SKU objetivo y presupuesto</td></tr>
+            <tr><td>DESGLOSE PEDIDOS</td><td>order_items.csv</td><td>Líneas de pedido con SKU, cantidad, precio</td></tr>
+            <tr><td>🚚 LOGÍSTICA</td><td>API Supabase</td><td>Estado de envío enriquecido con datos del pedido</td></tr>
+          </tbody>
+        </table>
+        <div class="docs-h2">Funciones</div>
+        <div class="docs-step"><div class="docs-step-num">🔍</div><div class="docs-step-body"><strong>Buscar</strong> — filtra por cualquier columna en tiempo real mientras escribes.</div></div>
+        <div class="docs-step"><div class="docs-step-num">↕</div><div class="docs-step-body"><strong>Ordenar</strong> — haz clic en cualquier cabecera de columna para ordenar ascendente/descendente.</div></div>
+        <div class="docs-step"><div class="docs-step-num">⬆</div><div class="docs-step-body"><strong>Importar CSV</strong> — carga un nuevo archivo CSV para el tab activo. Los datos reemplazan los actuales y se re-ejecutan todos los motores (alertas, tickets, inventario, dashboard).</div></div>
+        <div class="docs-step"><div class="docs-step-num">⬇</div><div class="docs-step-body"><strong>Descargar CSV</strong> — exporta los datos actuales del tab seleccionado como CSV.</div></div>
+        <div class="docs-callout amber">La importación de Excel (.xlsx) no está soportada directamente. Exporta el Excel como CSV desde Excel o Google Sheets antes de importarlo.</div>
+      </div>
+
+    </div><!-- /docs-content -->
+  </div><!-- /docs-body -->
+</div><!-- /docs -->
+
 <script>
 // ─── STATE ────────────────────────────────────────────────────────────────────
 const DATA = { inventory: [], tickets: [], orders: [], customers: [], campaigns: [], orderItems: [] };
@@ -954,6 +1532,14 @@ let warRoomOpen = false;
 let warRoomMessages = [];   // for DOM display only
 let apiMessages = [];        // clean history sent to the API
 let systemContextCache = '';
+
+// Slack state
+let slackWebhookUrl = '';
+let slackNotifications = []; // { ticketId, status, sentAt, ticket }
+const notifiedSlack = new Set(); // ticketIds already queued
+
+// Docs state
+let docsActiveSection = 'overview';
 
 // ─── CSV LOADING ─────────────────────────────────────────────────────────────
 const CSV_FILES = [
@@ -1252,6 +1838,11 @@ function classifyAllTickets() {
     autoResponse: shouldAutoResolve(t) ? getAutoResponse(t) : null,
     draftStatus: 'pending', // pending | approved | rejected
   }));
+  // Queue Slack notifications for HUMANO tickets (only new ones)
+  if (typeof queueSlackNotifications === 'function') {
+    // Use setTimeout to let rendering start first
+    setTimeout(() => queueSlackNotifications(false), 0);
+  }
 }
 
 function renderTickets() {
@@ -2335,6 +2926,202 @@ function showToast(msg) {
   el.textContent = msg;
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 3500);
+}
+
+// ─── SLACK ───────────────────────────────────────────────────────────────────
+function openSlackPanel() {
+  document.getElementById('slack-panel').classList.add('open');
+  document.getElementById('slack-webhook-input').value = slackWebhookUrl;
+  renderSlackLog();
+}
+function closeSlackPanel() {
+  document.getElementById('slack-panel').classList.remove('open');
+}
+function saveSlackWebhook() {
+  const val = document.getElementById('slack-webhook-input').value.trim();
+  slackWebhookUrl = val;
+  const btn = document.getElementById('slack-btn');
+  if (val) {
+    btn.style.borderColor = '#4caf50'; btn.style.color = '#4caf50';
+    showToast('✓ Webhook guardado — enviando notificaciones HUMANO');
+    queueSlackNotifications();
+  } else {
+    btn.style.borderColor = '#3a1f6e'; btn.style.color = '#7c5cbf';
+    showToast('Webhook eliminado');
+  }
+}
+async function testSlackWebhook() {
+  if (!slackWebhookUrl) { showToast('⚠ Primero guarda un webhook URL'); return; }
+  try {
+    await fetch(slackWebhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: '✅ *Scuffers OPS Brain* — Conexión de prueba exitosa. Notificaciones activas.' }),
+      mode: 'no-cors'
+    });
+    showToast('✓ Test enviado — verifica tu canal de Slack');
+  } catch(e) {
+    showToast('Error: ' + e.message);
+  }
+}
+
+function buildSlackPayload(ticket) {
+  const isVip = ticket.customer && ticket.customer.is_vip;
+  const ltv = ticket.customer ? Math.round(ticket.customer.customer_lifetime_value) : 0;
+  const orderStatus = ticket.order ? ticket.order.order_status : '?';
+  const urgency = ticket.support_ticket_urgency;
+  const shipping = MODEL.shipping[ticket.order_id];
+  const shipStatus = shipping ? (SHIP_STATUS_MAP[shipping.shipping_status] || {}).label : '—';
+  const delayRisk = shipping ? Math.round((shipping.delay_risk || 0) * 100) + '%' : '—';
+  const urgEmoji = urgency === 'urgent' ? '🔴' : urgency === 'high' ? '🟠' : urgency === 'medium' ? '🟡' : '⚪';
+
+  return {
+    text: `${urgEmoji} *TICKET HUMANO* — ${ticket.ticket_id} | "${ticket.support_ticket_message}"`,
+    blocks: [
+      { type: 'header', text: { type: 'plain_text', text: `${urgEmoji} Ticket HUMANO · ${ticket.ticket_id}`, emoji: true } },
+      {
+        type: 'section',
+        fields: [
+          { type: 'mrkdwn', text: `*Ticket:*\n${ticket.ticket_id}` },
+          { type: 'mrkdwn', text: `*Pedido:*\n${ticket.order_id}` },
+          { type: 'mrkdwn', text: `*Urgencia:*\n${urgency.toUpperCase()}` },
+          { type: 'mrkdwn', text: `*Canal:*\n${ticket.channel}` },
+        ]
+      },
+      { type: 'section', text: { type: 'mrkdwn', text: `*Mensaje del cliente:*\n_"${ticket.support_ticket_message}"_` } },
+      {
+        type: 'section',
+        fields: [
+          { type: 'mrkdwn', text: `*Estado pedido:*\n${orderStatus.toUpperCase()}` },
+          { type: 'mrkdwn', text: `*Logística:*\n${shipStatus}` },
+          { type: 'mrkdwn', text: `*Riesgo retraso:*\n${delayRisk}` },
+          { type: 'mrkdwn', text: isVip ? `*Cliente:*\n⭐ VIP · ${ltv}€ LTV` : `*Cliente:*\nEstándar` },
+        ]
+      },
+      { type: 'divider' },
+      {
+        type: 'actions',
+        elements: [
+          { type: 'button', text: { type: 'plain_text', text: '👁 Ver en Dashboard →', emoji: true }, style: 'primary', action_id: 'view_dashboard' }
+        ]
+      }
+    ]
+  };
+}
+
+async function sendSlackNotification(ticket) {
+  // Register notification entry
+  const existingIdx = slackNotifications.findIndex(n => n.ticketId === ticket.ticket_id);
+  const notif = { ticketId: ticket.ticket_id, status: slackWebhookUrl ? 'sent' : 'pending', sentAt: new Date().toISOString(), ticket };
+  if (existingIdx >= 0) slackNotifications[existingIdx] = notif;
+  else slackNotifications.unshift(notif);
+  notifiedSlack.add(ticket.ticket_id);
+  renderSlackLog();
+
+  if (!slackWebhookUrl) return; // just log as pending, no actual send
+
+  try {
+    await fetch(slackWebhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(buildSlackPayload(ticket)),
+      mode: 'no-cors' // CORS bypass for webhooks; can't read response status
+    });
+    // mode:no-cors = opaque response, we assume success
+  } catch(e) {
+    const idx = slackNotifications.findIndex(n => n.ticketId === ticket.ticket_id);
+    if (idx >= 0) { slackNotifications[idx].status = 'failed'; renderSlackLog(); }
+  }
+}
+
+function queueSlackNotifications(force = false) {
+  const humanTickets = MODEL.ticketClassifications.filter(t => !t.isAuto);
+  humanTickets.forEach(t => {
+    if (force || !notifiedSlack.has(t.ticket_id)) {
+      if (force) notifiedSlack.delete(t.ticket_id);
+      sendSlackNotification(t);
+    }
+  });
+}
+
+function renderSlackLog() {
+  const sent    = slackNotifications.filter(n => ['sent','approved','rejected'].includes(n.status)).length;
+  const pending = slackNotifications.filter(n => n.status === 'pending').length;
+  const failed  = slackNotifications.filter(n => n.status === 'failed').length;
+  document.getElementById('slack-stat-sent').textContent    = sent;
+  document.getElementById('slack-stat-pending').textContent = pending;
+  document.getElementById('slack-stat-failed').textContent  = failed;
+
+  const list = document.getElementById('slack-list');
+  if (!slackNotifications.length) {
+    list.innerHTML = '<div class="slack-empty">No hay notificaciones aún.<br><br>Configura el webhook y los tickets HUMANO se notificarán automáticamente.</div>';
+    return;
+  }
+
+  const STATUS_LABEL = { sent:'ENVIADO', pending:'PENDIENTE', failed:'FALLIDO', approved:'APROBADO', rejected:'RECHAZADO' };
+  const STATUS_CLS   = { sent:'s-sent',  pending:'s-pending',  failed:'s-failed',  approved:'s-approved', rejected:'s-rejected' };
+
+  list.innerHTML = slackNotifications.map(n => {
+    const t = n.ticket;
+    const urgency = t ? t.support_ticket_urgency : '?';
+    const msg     = t ? t.support_ticket_message : '?';
+    const isVip   = t && t.customer && t.customer.is_vip;
+    const ltv     = t && t.customer ? Math.round(t.customer.customer_lifetime_value) : 0;
+    const sentTime = new Date(n.sentAt).toLocaleTimeString('es', { hour:'2-digit', minute:'2-digit' });
+    const showActions = n.status === 'sent' || n.status === 'pending' || n.status === 'failed';
+    const slabel = STATUS_LABEL[n.status] || n.status;
+    const scls   = STATUS_CLS[n.status]   || '';
+
+    return `
+      <div class="slack-notification status-${n.status}" id="slack-notif-${n.ticketId}">
+        <div class="slack-notif-top">
+          <span class="slack-notif-id">${n.ticketId} · ${t ? t.order_id : ''}</span>
+          <span class="slack-notif-status ${scls}">${slabel}</span>
+        </div>
+        <div class="slack-notif-msg">"${msg}"</div>
+        <div class="slack-notif-meta">
+          <span>${urgency.toUpperCase()}</span>
+          <span>${t ? t.channel : '?'}</span>
+          ${isVip ? `<span style="color:var(--amber-bright)">⭐ VIP ${ltv}€</span>` : ''}
+          <span>${sentTime}</span>
+        </div>
+        ${showActions ? `
+          <div class="slack-notif-actions">
+            <button class="slack-btn-approve" onclick="simulateSlackResponse('${n.ticketId}','approved')">✓ APROBAR</button>
+            <button class="slack-btn-reject"  onclick="simulateSlackResponse('${n.ticketId}','rejected')">✗ RECHAZAR</button>
+            <button class="slack-btn-open" onclick="closeSlackPanel();setTimeout(()=>{const el=document.getElementById('tc-${n.ticketId}');if(el)el.scrollIntoView({behavior:'smooth',block:'center'})},150)">→ VER TICKET</button>
+          </div>
+        ` : `<div style="font-size:9px;color:var(--muted);letter-spacing:0.1em;padding-top:4px">${n.status === 'approved' ? '✓ APROBADO — RESPUESTA ENVIADA' : '✗ RECHAZADO — PENDIENTE MANUAL'}</div>`}
+      </div>`;
+  }).join('');
+}
+
+function simulateSlackResponse(ticketId, action) {
+  const notif = slackNotifications.find(n => n.ticketId === ticketId);
+  if (notif) { notif.status = action; renderSlackLog(); }
+  if (action === 'approved') approveTicket(ticketId);
+  else if (action === 'rejected') rejectTicket(ticketId);
+  showToast(`${action === 'approved' ? '✓ Aprobado' : '✗ Rechazado'} desde Slack — ${ticketId}`);
+}
+
+// ─── DOCUMENTATION ────────────────────────────────────────────────────────────
+function openDocs() {
+  document.getElementById('docs').classList.add('active');
+  showDocsSection(docsActiveSection);
+}
+function closeDocs() {
+  document.getElementById('docs').classList.remove('active');
+}
+function showDocsSection(id) {
+  docsActiveSection = id;
+  document.querySelectorAll('.docs-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.docs-nav-item').forEach(b => b.classList.remove('active'));
+  const section = document.getElementById('docs-' + id);
+  if (section) section.classList.add('active');
+  const navBtn = document.querySelector(`.docs-nav-item[data-section="${id}"]`);
+  if (navBtn) navBtn.classList.add('active');
+  const content = document.querySelector('.docs-content');
+  if (content) content.scrollTop = 0;
 }
 
 // ─── BOOT ─────────────────────────────────────────────────────────────────────

@@ -309,6 +309,136 @@
   #war-send:hover { background: var(--green-bright); }
   #war-send:disabled { background: var(--surface2); color: var(--muted); cursor: not-allowed; }
 
+  /* ROLES */
+  .role-badge {
+    font-family: var(--display); font-size: 11px; font-weight: 900; letter-spacing: 0.2em;
+    padding: 5px 12px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px;
+  }
+  .role-badge.role-admin  { background: rgba(43,117,81,0.2);  color: var(--green-bright); border: 1px solid var(--green-dim); }
+  .role-badge.role-cs     { background: rgba(41,128,185,0.2); color: #5dade2;             border: 1px solid #1a5276; }
+  .role-badge.role-agent  { background: rgba(255,255,255,0.07); color: var(--muted);      border: 1px solid var(--border); }
+  .role-badge:hover { filter: brightness(1.2); }
+
+  #roles-panel {
+    position: fixed; top: 0; right: -420px; bottom: 0; width: 400px; z-index: 300;
+    background: var(--surface); border-left: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    transition: right 0.3s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: -20px 0 60px rgba(0,0,0,0.5);
+  }
+  #roles-panel.open { right: 0; }
+  .roles-overlay {
+    position: fixed; inset: 0; z-index: 299; background: rgba(0,0,0,0.5);
+    display: none; transition: opacity 0.3s;
+  }
+  .roles-overlay.open { display: block; }
+
+  .roles-header {
+    padding: 20px 24px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .roles-header-title {
+    font-family: var(--display); font-size: 16px; font-weight: 900;
+    letter-spacing: 0.2em; text-transform: uppercase;
+  }
+  .roles-close {
+    font-family: var(--display); font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+    padding: 5px 10px; border: 1px solid var(--border); background: transparent;
+    color: var(--muted); cursor: pointer; transition: all 0.15s;
+  }
+  .roles-close:hover { border-color: var(--text); color: var(--text); }
+
+  .roles-subtitle {
+    padding: 14px 24px 0; font-size: 10px; color: var(--muted); line-height: 1.6; letter-spacing: 0.05em;
+  }
+  .roles-list { padding: 16px; display: flex; flex-direction: column; gap: 10px; flex: 1; overflow-y: auto; }
+
+  .role-card {
+    padding: 16px; border: 1px solid var(--border); cursor: pointer;
+    transition: all 0.2s; position: relative; overflow: hidden;
+  }
+  .role-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    transition: background 0.2s;
+  }
+  .role-card.admin::before { background: var(--green); }
+  .role-card.cs::before    { background: #2980b9; }
+  .role-card.agent::before { background: var(--border); }
+  .role-card:hover { border-color: #444; background: rgba(255,255,255,0.02); }
+  .role-card.active { background: rgba(255,255,255,0.04); }
+  .role-card.active.admin { border-color: var(--green-dim); }
+  .role-card.active.cs    { border-color: #1a5276; }
+  .role-card.active.agent { border-color: #444; }
+
+  .role-card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .role-icon { font-size: 18px; }
+  .role-name {
+    font-family: var(--display); font-size: 15px; font-weight: 900; letter-spacing: 0.15em; text-transform: uppercase;
+  }
+  .role-card.admin .role-name  { color: var(--green-bright); }
+  .role-card.cs    .role-name  { color: #5dade2; }
+  .role-card.agent .role-name  { color: var(--muted); }
+  .role-active-badge {
+    margin-left: auto; font-family: var(--display); font-size: 9px; font-weight: 900;
+    letter-spacing: 0.1em; padding: 2px 7px; background: rgba(43,117,81,0.3); color: var(--green-bright);
+  }
+  .role-desc { font-size: 10px; color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
+  .role-perms { display: flex; flex-direction: column; gap: 3px; }
+  .role-perm { font-size: 9px; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px; }
+  .role-perm.yes { color: #5dade2; }
+  .role-perm.no  { color: #444; text-decoration: line-through; }
+  .role-perm.yes::before { content: '✓'; color: var(--green-bright); }
+  .role-perm.no::before  { content: '–'; color: #444; }
+  .role-select-btn {
+    margin-top: 12px; width: 100%;
+    font-family: var(--display); font-size: 11px; font-weight: 900; letter-spacing: 0.15em;
+    text-transform: uppercase; padding: 8px; border: 1px solid var(--border);
+    background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s;
+  }
+  .role-select-btn:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+  .role-card.active .role-select-btn { display: none; }
+
+  .roles-demo-btn {
+    margin: 16px; padding: 12px;
+    font-family: var(--display); font-size: 12px; font-weight: 900; letter-spacing: 0.2em;
+    text-transform: uppercase; border: 1px solid var(--green-dim); background: rgba(43,117,81,0.1);
+    color: var(--green-bright); cursor: pointer; transition: all 0.15s; text-align: center;
+  }
+  .roles-demo-btn:hover { background: rgba(43,117,81,0.2); }
+
+  /* role-based visibility */
+  .admin-only  { transition: opacity 0.2s; }
+  .cs-up       { transition: opacity 0.2s; }
+  .role-hidden { display: none !important; }
+
+  /* EDIT DRAFT (CS role) */
+  .btn-edit {
+    font-family: var(--display); font-size: 10px; font-weight: 900; letter-spacing: 0.1em;
+    padding: 4px 10px; background: transparent; color: #5dade2;
+    border: 1px solid #1a5276; cursor: pointer; transition: all 0.15s;
+  }
+  .btn-edit:hover { background: rgba(41,128,185,0.15); }
+  .edit-draft-wrap { margin-top: 6px; display: flex; flex-direction: column; gap: 6px; }
+  .edit-draft-textarea {
+    width: 100%; min-height: 80px; background: var(--bg); border: 1px solid #1a5276;
+    color: var(--text); padding: 8px 10px; font-family: var(--mono); font-size: 10px;
+    line-height: 1.5; resize: vertical; outline: none;
+  }
+  .edit-draft-textarea:focus { border-color: #5dade2; }
+  .edit-draft-actions { display: flex; gap: 6px; }
+  .btn-confirm-edit {
+    font-family: var(--display); font-size: 10px; font-weight: 900; letter-spacing: 0.1em;
+    padding: 5px 12px; background: #2980b9; color: white; border: none; cursor: pointer;
+    transition: background 0.15s; flex: 1;
+  }
+  .btn-confirm-edit:hover { background: #5dade2; }
+  .btn-cancel-edit {
+    font-family: var(--display); font-size: 10px; font-weight: 900; letter-spacing: 0.1em;
+    padding: 5px 10px; background: transparent; color: var(--muted);
+    border: 1px solid var(--border); cursor: pointer; transition: all 0.15s;
+  }
+  .btn-cancel-edit:hover { color: var(--text); border-color: var(--text); }
+
   /* API SETTINGS */
   #api-settings {
     position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,0.8);
@@ -560,6 +690,7 @@
   <img src="https://scuffers.com/cdn/shop/files/Logo_Scuffers_Blanco_500x.png" alt="Scuffers">
   <div class="topbar-sep"></div>
   <div class="title">OPS BRAIN</div>
+  <div id="role-badge" class="role-badge role-admin" onclick="openRolesPanel()">👤 ADMIN ▾</div>
   <div class="topbar-sep"></div>
   <div class="live-counter">
     <div class="live-dot"></div>
@@ -576,10 +707,10 @@
   </div>
   <div class="topbar-right">
     <div class="refresh-time" id="refresh-time">ACTUALIZADO —</div>
-    <button onclick="openDashboard()" style="font-family:var(--display);font-size:13px;font-weight:900;letter-spacing:0.2em;text-transform:uppercase;padding:8px 18px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='var(--green)';this.style.color='var(--green-bright)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">📈 DASHBOARD</button>
-    <button onclick="openDataExplorer()" style="font-family:var(--display);font-size:13px;font-weight:900;letter-spacing:0.2em;text-transform:uppercase;padding:8px 18px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='var(--green)';this.style.color='var(--green-bright)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">📊 DATOS</button>
-    <button id="api-key-btn" onclick="openApiSettings()" style="font-family:var(--display);font-size:11px;font-weight:900;letter-spacing:0.15em;text-transform:uppercase;padding:8px 14px;border:1px solid var(--red);background:transparent;color:var(--red);cursor:pointer;transition:all 0.2s">⚙ API KEY</button>
-    <button id="war-room-toggle" onclick="toggleWarRoom()">⬛ WAR ROOM</button>
+    <button id="btn-dashboard" onclick="openDashboard()" class="admin-only" style="font-family:var(--display);font-size:13px;font-weight:900;letter-spacing:0.2em;text-transform:uppercase;padding:8px 18px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='var(--green)';this.style.color='var(--green-bright)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">📈 DASHBOARD</button>
+    <button id="btn-datos" onclick="openDataExplorer()" class="admin-only" style="font-family:var(--display);font-size:13px;font-weight:900;letter-spacing:0.2em;text-transform:uppercase;padding:8px 18px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='var(--green)';this.style.color='var(--green-bright)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">📊 DATOS</button>
+    <button id="api-key-btn" onclick="openApiSettings()" class="admin-only" style="font-family:var(--display);font-size:11px;font-weight:900;letter-spacing:0.15em;text-transform:uppercase;padding:8px 14px;border:1px solid var(--red);background:transparent;color:var(--red);cursor:pointer;transition:all 0.2s">⚙ API KEY</button>
+    <button id="war-room-toggle" class="admin-only" onclick="toggleWarRoom()">⬛ WAR ROOM</button>
   </div>
 </div>
 
@@ -632,6 +763,71 @@
     <div id="inventory-container"></div>
   </div>
 
+</div>
+
+<!-- ROLES OVERLAY + PANEL -->
+<div class="roles-overlay" id="roles-overlay" onclick="closeRolesPanel()"></div>
+<div id="roles-panel">
+  <div class="roles-header">
+    <div class="roles-header-title">👤 Gestión de Acceso</div>
+    <button class="roles-close" onclick="closeRolesPanel()">✕ CERRAR</button>
+  </div>
+  <div class="roles-subtitle">Selecciona el rol para simular la experiencia de cada usuario dentro de Scuffers Ops Brain. Los jueces pueden cambiar entre vistas en tiempo real.</div>
+  <div class="roles-list">
+
+    <div class="role-card admin" id="role-card-admin" onclick="setRole('admin')">
+      <div class="role-card-top">
+        <span class="role-icon">🛡</span>
+        <span class="role-name">Administrador</span>
+        <span class="role-active-badge" id="active-badge-admin" style="display:none">ACTIVO</span>
+      </div>
+      <div class="role-desc">Visibilidad y control total. Gestiona campañas, inventario, tickets, datos y tiene acceso al War Room AI y al Dashboard en tiempo real.</div>
+      <div class="role-perms">
+        <div class="role-perm yes">Motor de alertas completo (campañas, stock, VIPs)</div>
+        <div class="role-perm yes">Cola de tickets completa + borradores IA</div>
+        <div class="role-perm yes">Panel de riesgo de inventario</div>
+        <div class="role-perm yes">War Room AI + Dashboard + Explorador de datos</div>
+        <div class="role-perm yes">Datos de negocio: LTV, campañas, revenue</div>
+      </div>
+      <button class="role-select-btn" onclick="event.stopPropagation();setRole('admin')">ACTIVAR ESTE ROL →</button>
+    </div>
+
+    <div class="role-card cs" id="role-card-cs" onclick="setRole('cs')">
+      <div class="role-card-top">
+        <span class="role-icon">🎯</span>
+        <span class="role-name">Customer Success</span>
+        <span class="role-active-badge" id="active-badge-cs" style="display:none">ACTIVO</span>
+      </div>
+      <div class="role-desc">Gestiona la relación con el cliente. Ve ambas colas de tickets, puede aprobar, rechazar y editar borradores antes de enviarlos. Sin acceso a datos operacionales del negocio.</div>
+      <div class="role-perms">
+        <div class="role-perm yes">Alertas de tickets (VIP urgentes, retrasos)</div>
+        <div class="role-perm yes">Cola AUTO + cola HUMANO completa</div>
+        <div class="role-perm yes">Aprobar / Rechazar / Editar borradores IA</div>
+        <div class="role-perm no">Panel de inventario y campañas</div>
+        <div class="role-perm no">War Room, Dashboard, Explorador de datos</div>
+      </div>
+      <button class="role-select-btn" onclick="event.stopPropagation();setRole('cs')">ACTIVAR ESTE ROL →</button>
+    </div>
+
+    <div class="role-card agent" id="role-card-agent" onclick="setRole('agent')">
+      <div class="role-card-top">
+        <span class="role-icon">💬</span>
+        <span class="role-name">Agente de Soporte</span>
+        <span class="role-active-badge" id="active-badge-agent" style="display:none">ACTIVO</span>
+      </div>
+      <div class="role-desc">Ejecuta las respuestas generadas por la IA. Ve los tickets auto-resueltos como decisiones finales. Sin contexto de negocio ni datos de clientes.</div>
+      <div class="role-perms">
+        <div class="role-perm yes">Tickets auto-resueltos con respuesta enviada</div>
+        <div class="role-perm no">LTV de cliente, datos de pedido o revenue</div>
+        <div class="role-perm no">Cola de revisión humana</div>
+        <div class="role-perm no">Alertas, inventario, campañas</div>
+        <div class="role-perm no">War Room, Dashboard, herramientas admin</div>
+      </div>
+      <button class="role-select-btn" onclick="event.stopPropagation();setRole('agent')">ACTIVAR ESTE ROL →</button>
+    </div>
+
+  </div>
+  <button class="roles-demo-btn" onclick="setRole('admin');closeRolesPanel()">⬛ VOLVER A MODO DEMO COMPLETO (ADMIN)</button>
 </div>
 
 <!-- API SETTINGS MODAL -->
@@ -736,6 +932,7 @@ const CANDIDATE_ID = 'SCF-2026-2649';
 let claudeApiKey = '';
 let dashboardOpen = false;
 const chartInstances = {};
+let currentRole = 'admin'; // 'admin' | 'cs' | 'agent'
 
 const SHIP_STATUS_MAP = {
   delivered:          { icon: '✓', label: 'ENTREGADO',       cls: 'ship-delivered' },
@@ -846,7 +1043,8 @@ function runAlertEngine() {
       msg: `[${t.ticket_id}] ${t.support_ticket_message.substring(0, 80)}...`,
       action: 'ATENDER AHORA',
       actionColor: 'red',
-      ref: t.ticket_id
+      ref: t.ticket_id,
+      isTicketAlert: true
     });
   });
 
@@ -918,7 +1116,8 @@ function runAlertEngine() {
         msg: `${Math.round(s.delay_risk * 100)}% probabilidad de retraso${reason}. ETA ${s.estimated_delivery_date}. Ticket ${ticket.ticket_id} abierto.`,
         action: 'COMUNICAR CLIENTE',
         actionColor: 'amber',
-        ref: s.order_id
+        ref: s.order_id,
+        isTicketAlert: true
       });
     });
 
@@ -934,8 +1133,14 @@ function runAlertEngine() {
 
 function renderAlerts(alerts) {
   const el = document.getElementById('alerts-container');
-  document.getElementById('alerts-count').textContent = alerts.length;
-  if (!alerts.length) { el.innerHTML = '<div class="empty-state">Sin alertas activas</div>'; return; }
+  // CS only sees ticket-related alerts
+  let visible = alerts;
+  if (currentRole === 'cs') {
+    visible = alerts.filter(a => a.isTicketAlert);
+  }
+  document.getElementById('alerts-count').textContent = visible.length;
+  if (!visible.length) { el.innerHTML = '<div class="empty-state">Sin alertas en tu área</div>'; return; }
+  alerts = visible;
 
   el.innerHTML = alerts.map((a, i) => `
     <div class="alert-item ${a.severity}">
@@ -1067,29 +1272,31 @@ function renderTickets() {
   document.getElementById('total-tickets-badge').textContent = DATA.tickets.length;
   document.getElementById('tickets-count').textContent = DATA.tickets.length;
 
-  // Render AUTO
+  // Render AUTO — simplified for agent role (no business data)
   const autoEl = document.getElementById('auto-tickets');
   if (!autoTickets.length) { autoEl.innerHTML = '<div class="empty-state">Sin tickets auto-resueltos</div>'; }
   else {
     autoEl.innerHTML = autoTickets.map(t => {
-      const ltv = t.customer ? `LTV ${Math.round(t.customer.customer_lifetime_value)}€` : '';
+      const showBiz = currentRole !== 'agent';
+      const ltv = showBiz && t.customer ? `LTV ${Math.round(t.customer.customer_lifetime_value)}€` : '';
+      const orderId = showBiz ? `${t.ticket_id} · ${t.order_id}` : t.ticket_id;
       return `
         <div class="ticket-card" id="tc-${t.ticket_id}">
           <div class="ticket-top">
-            <span class="ticket-id">${t.ticket_id} · ${t.order_id}</span>
+            <span class="ticket-id">${orderId}</span>
             <span class="ticket-urgency urgency-${t.support_ticket_urgency}">${t.support_ticket_urgency.toUpperCase()}</span>
           </div>
           <div class="ticket-msg">${t.support_ticket_message}</div>
           <div class="ticket-meta">
             <span class="ticket-channel">${t.channel}</span>
-            <span style="color:var(--muted);margin-left:8px">${ltv}</span>
+            ${ltv ? `<span style="color:var(--muted);margin-left:8px">${ltv}</span>` : ''}
           </div>
-          <div id="ship-${t.ticket_id}"><span class="ship-loading">cargando envío · · ·</span></div>
+          ${showBiz ? `<div id="ship-${t.ticket_id}"><span class="ship-loading">cargando envío · · ·</span></div>` : ''}
           <div class="ai-response">
-            <div class="ai-response-label">✓ AUTO-ENVIADO</div>
+            <div class="ai-response-label">✓ RESPUESTA ENVIADA</div>
             ${t.autoResponse}
           </div>
-          <div class="resolved-badge">AUTO-RESUELTO</div>
+          <div class="resolved-badge">RESUELTO</div>
         </div>
       `;
     }).join('');
@@ -1132,6 +1339,7 @@ function renderTickets() {
         </div>
         <div class="ticket-actions" id="actions-${t.ticket_id}">
           <button class="btn-approve" onclick="approveTicket('${t.ticket_id}')">APROBAR Y ENVIAR</button>
+          <button class="btn-edit" onclick="startEditDraft('${t.ticket_id}')">EDITAR</button>
           <button class="btn-reject" onclick="rejectTicket('${t.ticket_id}')">RECHAZAR</button>
         </div>
       </div>
@@ -1694,6 +1902,160 @@ function downloadCurrentCSV() {
   a.click();
 }
 
+// ─── ROLES ───────────────────────────────────────────────────────────────────
+const ROLE_CONFIG = {
+  admin: {
+    label: '👤 ADMIN',
+    badgeClass: 'role-admin',
+    showAlerts: true,
+    showInventory: true,
+    showHumanCol: true,
+    showAdminTools: true,
+    showBizData: true,
+    mainGrid: '300px 1fr 290px',
+    alertsTitle: 'ALERTAS PROACTIVAS',
+  },
+  cs: {
+    label: '🎯 CUSTOMER SUCCESS',
+    badgeClass: 'role-cs',
+    showAlerts: true,
+    showInventory: false,
+    showHumanCol: true,
+    showAdminTools: false,
+    showBizData: true,
+    mainGrid: '280px 1fr',
+    alertsTitle: 'ALERTAS — TICKETS',
+  },
+  agent: {
+    label: '💬 AGENTE',
+    badgeClass: 'role-agent',
+    showAlerts: false,
+    showInventory: false,
+    showHumanCol: false,
+    showAdminTools: false,
+    showBizData: false,
+    mainGrid: '1fr',
+    alertsTitle: 'ALERTAS',
+  },
+};
+
+function openRolesPanel() {
+  document.getElementById('roles-panel').classList.add('open');
+  document.getElementById('roles-overlay').classList.add('open');
+}
+function closeRolesPanel() {
+  document.getElementById('roles-panel').classList.remove('open');
+  document.getElementById('roles-overlay').classList.remove('open');
+}
+
+function setRole(role) {
+  currentRole = role;
+  applyRoleVisibility();
+  renderAlerts(MODEL.alertsGenerated);
+  renderTickets();
+  // Update role cards active state
+  ['admin','cs','agent'].forEach(r => {
+    document.getElementById(`role-card-${r}`).classList.toggle('active', r === role);
+    document.getElementById(`active-badge-${r}`).style.display = r === role ? 'block' : 'none';
+  });
+  closeRolesPanel();
+}
+
+function applyRoleVisibility() {
+  const cfg = ROLE_CONFIG[currentRole];
+
+  // Badge
+  const badge = document.getElementById('role-badge');
+  badge.textContent = cfg.label + ' ▾';
+  badge.className = `role-badge ${cfg.badgeClass}`;
+
+  // Alerts panel header
+  document.querySelector('#alerts-panel .panel-header').childNodes[0].textContent = cfg.alertsTitle + ' ';
+
+  // Admin-only elements (topbar buttons)
+  document.querySelectorAll('.admin-only').forEach(el => {
+    el.classList.toggle('role-hidden', !cfg.showAdminTools);
+  });
+
+  // Panels
+  document.getElementById('alerts-panel').classList.toggle('role-hidden', !cfg.showAlerts);
+  document.getElementById('inventory-panel').classList.toggle('role-hidden', !cfg.showInventory);
+
+  // Tickets columns
+  const humanCol = document.querySelector('#tickets-panel .ticket-col:last-child');
+  if (humanCol) humanCol.classList.toggle('role-hidden', !cfg.showHumanCol);
+
+  // Live counters: hide payment_review for non-admin
+  const reviewCounter = document.getElementById('review-count').parentElement;
+  if (reviewCounter) reviewCounter.classList.toggle('role-hidden', !cfg.showAdminTools);
+
+  // Main grid
+  document.getElementById('main').style.gridTemplateColumns = cfg.mainGrid;
+
+  // Auto column: full width when alone (agent view)
+  const autoCol = document.querySelector('#tickets-panel .ticket-col:first-child');
+  if (autoCol) {
+    autoCol.style.flex = cfg.showHumanCol ? '' : '1';
+  }
+
+  // Tickets-cols: single col layout for agent
+  const ticketsCols = document.querySelector('.tickets-cols');
+  if (ticketsCols) {
+    ticketsCols.style.gridTemplateColumns = cfg.showHumanCol ? '1fr 1fr' : '1fr';
+  }
+}
+
+// ─── EDIT DRAFT ───────────────────────────────────────────────────────────────
+function startEditDraft(ticketId) {
+  const draftEl = document.getElementById(`draft-${ticketId}`);
+  const textEl  = document.getElementById(`draft-text-${ticketId}`);
+  const actionsEl = document.getElementById(`actions-${ticketId}`);
+  if (!draftEl || !textEl) return;
+
+  const currentText = textEl.textContent.trim();
+  // Replace draft text with editable area
+  textEl.style.display = 'none';
+  const editWrap = document.createElement('div');
+  editWrap.className = 'edit-draft-wrap'; editWrap.id = `edit-wrap-${ticketId}`;
+  editWrap.innerHTML = `
+    <textarea class="edit-draft-textarea" id="edit-ta-${ticketId}">${currentText}</textarea>
+    <div class="edit-draft-actions">
+      <button class="btn-confirm-edit" onclick="confirmEdit('${ticketId}')">✓ CONFIRMAR EDICIÓN</button>
+      <button class="btn-cancel-edit"  onclick="cancelEdit('${ticketId}')">CANCELAR</button>
+    </div>`;
+  draftEl.appendChild(editWrap);
+  document.getElementById(`edit-ta-${ticketId}`).focus();
+  // Hide action buttons while editing
+  if (actionsEl) actionsEl.style.display = 'none';
+}
+
+function confirmEdit(ticketId) {
+  const ta = document.getElementById(`edit-ta-${ticketId}`);
+  if (!ta) return;
+  const newText = ta.value.trim();
+  const textEl = document.getElementById(`draft-text-${ticketId}`);
+  if (textEl) { textEl.textContent = newText; textEl.style.display = ''; }
+  const editWrap = document.getElementById(`edit-wrap-${ticketId}`);
+  if (editWrap) editWrap.remove();
+  const actionsEl = document.getElementById(`actions-${ticketId}`);
+  if (actionsEl) actionsEl.style.display = '';
+  // Update label to show edited state
+  const label = document.querySelector(`#draft-${ticketId} .ai-response-label`);
+  if (label) { label.textContent = '✏ BORRADOR EDITADO — PENDIENTE APROBACIÓN'; label.style.color = '#5dade2'; }
+  // Store in model
+  const tc = MODEL.ticketClassifications.find(t => t.ticket_id === ticketId);
+  if (tc) tc.generatedDraft = newText;
+}
+
+function cancelEdit(ticketId) {
+  const textEl = document.getElementById(`draft-text-${ticketId}`);
+  if (textEl) textEl.style.display = '';
+  const editWrap = document.getElementById(`edit-wrap-${ticketId}`);
+  if (editWrap) editWrap.remove();
+  const actionsEl = document.getElementById(`actions-${ticketId}`);
+  if (actionsEl) actionsEl.style.display = '';
+}
+
 // ─── API SETTINGS ────────────────────────────────────────────────────────────
 function openApiSettings() {
   document.getElementById('api-settings').classList.add('active');
@@ -2006,7 +2368,7 @@ async function boot() {
     document.getElementById('loading-screen').style.display = 'none';
     document.getElementById('topbar').style.display = 'flex';
     document.getElementById('main').style.display = 'grid';
-    // Load shipping data async — UI is already shown, updates happen progressively
+    applyRoleVisibility(); // apply default admin role visibility
     loadShippingData().then(() => refreshAutoResponses());
   }, 400);
 

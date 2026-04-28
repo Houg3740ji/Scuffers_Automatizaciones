@@ -308,6 +308,35 @@
   #war-send:hover { background: var(--green-bright); }
   #war-send:disabled { background: var(--surface2); color: var(--muted); cursor: not-allowed; }
 
+  /* SHIPPING STATUS */
+  .ship-row {
+    margin-top: 8px; padding: 7px 10px;
+    background: rgba(0,0,0,0.3); border: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .ship-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .ship-status {
+    font-family: var(--display); font-size: 10px; font-weight: 900;
+    letter-spacing: 0.15em; padding: 2px 7px; display: inline-flex; align-items: center; gap: 5px;
+  }
+  .ship-delivered  { background: rgba(43,117,81,0.2);  color: var(--green-bright); }
+  .ship-active     { background: rgba(43,117,81,0.35); color: #5ddb9a; animation: pulse-dot 1.5s infinite; }
+  .ship-transit    { background: rgba(41,128,185,0.2); color: #5dade2; }
+  .ship-sorting    { background: rgba(41,128,185,0.15);color: #5dade2; }
+  .ship-pending    { background: var(--surface2);      color: var(--muted); }
+  .ship-delayed    { background: rgba(231,76,60,0.2);  color: var(--red-bright); }
+  .ship-unknown    { background: var(--surface2);      color: var(--muted); }
+  .ship-eta  { font-size: 10px; color: var(--muted); }
+  .ship-eta span { color: var(--text); font-weight: 700; }
+  .ship-risk-bar { height: 3px; background: var(--border); }
+  .ship-risk-fill { height: 100%; transition: width 0.4s; }
+  .ship-risk-low  { background: var(--green); }
+  .ship-risk-mid  { background: var(--amber-bright); }
+  .ship-risk-high { background: var(--red-bright); }
+  .ship-detail { font-size: 9px; color: var(--muted); letter-spacing: 0.05em; }
+  .ship-loading { font-size: 10px; color: var(--muted); animation: blink 1.2s infinite; }
+  .ship-manual { color: var(--red-bright); font-weight: 700; }
+
   /* DATA EXPLORER */
   #data-explorer {
     position: fixed; inset: 0; z-index: 200;
@@ -507,6 +536,7 @@
     <button class="de-tab" onclick="switchTab('customers')">CLIENTES</button>
     <button class="de-tab" onclick="switchTab('campaigns')">CAMPAÑAS</button>
     <button class="de-tab" onclick="switchTab('orderItems')">DESGLOSE PEDIDOS</button>
+    <button class="de-tab" onclick="switchTab('shipping')">🚚 LOGÍSTICA</button>
   </div>
   <div class="de-toolbar">
     <input type="text" id="de-search" placeholder="Buscar en cualquier columna..." oninput="filterTable()" autocomplete="off">
@@ -550,7 +580,25 @@
 <script>
 // ─── STATE ────────────────────────────────────────────────────────────────────
 const DATA = { inventory: [], tickets: [], orders: [], customers: [], campaigns: [], orderItems: [] };
-const MODEL = { byOrder: {}, byCustomer: {}, bySku: {}, alertsGenerated: [], ticketClassifications: [] };
+const MODEL = { byOrder: {}, byCustomer: {}, bySku: {}, alertsGenerated: [], ticketClassifications: [], shipping: {} };
+const CANDIDATE_ID = 'SCF-2026-2649';
+
+const SHIP_STATUS_MAP = {
+  delivered:          { icon: '✓', label: 'ENTREGADO',       cls: 'ship-delivered' },
+  out_for_delivery:   { icon: '▶', label: 'EN REPARTO',      cls: 'ship-active'    },
+  in_transit:         { icon: '→', label: 'EN TRÁNSITO',     cls: 'ship-transit'   },
+  at_sorting_center:  { icon: '⟳', label: 'EN CENTRO',       cls: 'ship-sorting'   },
+  picked_up:          { icon: '↑', label: 'RECOGIDO',        cls: 'ship-transit'   },
+  label_created:      { icon: '○', label: 'ETIQUETA LISTA',  cls: 'ship-pending'   },
+  delayed:            { icon: '⚠', label: 'RETRASADO',       cls: 'ship-delayed'   },
+};
+
+const DELAY_REASON_LABELS = {
+  weather:      'condiciones meteorológicas',
+  customs_hold: 'retención en aduana',
+  high_volume:  'alto volumen de envíos',
+};
+
 let warRoomOpen = false;
 let warRoomMessages = [];   // for DOM display only
 let apiMessages = [];        // clean history sent to the API
@@ -686,6 +734,40 @@ function runAlertEngine() {
     });
   }
 
+  // ── SHIPPING ALERTS (only after data is loaded) ──────────────────────────
+  const shippingEntries = Object.values(MODEL.shipping);
+
+  // CRÍTICO: requires_manual_review
+  shippingEntries.filter(s => s.requires_manual_review).forEach(s => {
+    const ticket = DATA.tickets.find(t => t.order_id === s.order_id);
+    const reason = s.delay_reason ? ` · ${DELAY_REASON_LABELS[s.delay_reason] || s.delay_reason}` : '';
+    alerts.push({
+      severity: 'critical',
+      title: `Revisión manual: ${s.order_id}`,
+      msg: `Estado logístico: ${s.shipping_status}${reason}. ${s.delivery_attempts} intento(s). ${ticket ? 'Ticket ' + ticket.ticket_id + ' abierto.' : ''}`,
+      action: 'VER PEDIDO',
+      actionColor: 'red',
+      ref: s.order_id
+    });
+  });
+
+  // AVISO: delay_risk > 0.6 con ticket abierto
+  shippingEntries
+    .filter(s => s.delay_risk > 0.6 && !s.requires_manual_review)
+    .forEach(s => {
+      const ticket = DATA.tickets.find(t => t.order_id === s.order_id);
+      if (!ticket) return;
+      const reason = s.delay_reason ? ` — ${DELAY_REASON_LABELS[s.delay_reason] || s.delay_reason}` : '';
+      alerts.push({
+        severity: 'warning',
+        title: `Riesgo de retraso: ${s.order_id}`,
+        msg: `${Math.round(s.delay_risk * 100)}% probabilidad de retraso${reason}. ETA ${s.estimated_delivery_date}. Ticket ${ticket.ticket_id} abierto.`,
+        action: 'COMUNICAR CLIENTE',
+        actionColor: 'amber',
+        ref: s.order_id
+      });
+    });
+
   MODEL.alertsGenerated = alerts;
   renderAlerts(alerts);
 
@@ -751,17 +833,55 @@ function shouldAutoResolve(ticket) {
 }
 
 const AUTO_RESPONSES = {
-  consulta_tracking: (t) => `Hola, tu pedido ${t.order_id} está confirmado y en proceso. Los envíos estándar llegan en 2-4 días hábiles — recibirás el link de seguimiento por email en las próximas horas. Si tienes cualquier duda más, aquí estamos.\n\nAs Always, With Love — Scuffers`,
-  ansiedad_stock: (t) => `Hola, tu pedido ${t.order_id} ya está registrado y confirmado en nuestro sistema. Tu unidad está reservada — no te va a llegar el susto del stockout. Te avisamos en cuanto salga del almacén.\n\nAs Always, With Love — Scuffers`,
-  confirmacion_regalo: (t) => `Hola, confirmamos que el pedido ${t.order_id} está procesado y listo para salir. Si necesitas que en el paquete no aparezca el precio o quieres añadir algún mensaje para el regalo, dinos antes de que lo empaquetemos.\n\nAs Always, With Love — Scuffers`,
-  express_concern: (t) => `Hola, hemos visto tu pedido ${t.order_id} con envío express. Lo marcamos como prioritario en el picking. Tiempo estimado de entrega: 24-48h desde que salga del almacén. Te mandamos el tracking en cuanto esté listo.\n\nAs Always, With Love — Scuffers`,
+  consulta_tracking: (t) => {
+    const eta = t.eta ? `, prevista para el ${t.eta}` : ' en los próximos días';
+    const status = t.statusStr ? ` Tu pedido está actualmente ${t.statusStr.toLowerCase()}.` : '';
+    return `Hola, tu pedido ${t.order_id} va en camino${eta}.${status} En cuanto tengamos el link de tracking te lo mandamos directamente.\n\nAs Always, With Love — Scuffers`;
+  },
+  ansiedad_stock: (t) => {
+    const eta = t.eta ? ` La entrega está prevista para el ${t.eta}.` : '';
+    return `Hola, tu pedido ${t.order_id} ya está confirmado y tu unidad reservada — sin riesgo de stockout.${eta} Estás en buenas manos.\n\nAs Always, With Love — Scuffers`;
+  },
+  confirmacion_regalo: (t) => {
+    const eta = t.eta ? ` La entrega está estimada para el ${t.eta}.` : '';
+    return `Hola, el pedido ${t.order_id} está procesado y en camino.${eta} Si necesitas que no aparezca el precio o quieres añadir un mensaje, dinos antes de que llegue.\n\nAs Always, With Love — Scuffers`;
+  },
+  express_concern: (t) => {
+    const eta = t.eta ? ` Entrega estimada: ${t.eta}.` : ' Entrega en 24-48h.';
+    return `Hola, tu pedido ${t.order_id} está marcado como express y tiene prioridad en el proceso.${eta} Te enviamos el tracking en cuanto esté disponible.\n\nAs Always, With Love — Scuffers`;
+  },
   consulta_general: (t) => `Hola, recibimos tu mensaje sobre el pedido ${t.order_id}. Lo estamos revisando y te respondemos en breve con todos los detalles.\n\nAs Always, With Love — Scuffers`,
 };
 
 function getAutoResponse(ticket) {
   const intent = classifyTicketIntent(ticket.support_ticket_message);
   const fn = AUTO_RESPONSES[intent] || AUTO_RESPONSES.consulta_general;
-  return fn({ order_id: ticket.order_id, ticket_id: ticket.ticket_id });
+  const shipping = MODEL.shipping[ticket.order_id];
+  const etaStr = shipping && shipping.estimated_delivery_date
+    ? new Date(shipping.estimated_delivery_date + 'T12:00:00')
+        .toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' })
+    : null;
+  const statusStr = shipping ? (SHIP_STATUS_MAP[shipping.shipping_status] || {}).label : null;
+  return fn({ order_id: ticket.order_id, ticket_id: ticket.ticket_id, eta: etaStr, statusStr });
+}
+
+// Also refresh auto-responses once shipping data loads
+function refreshAutoResponses() {
+  DATA.tickets.filter(t => {
+    const tc = MODEL.ticketClassifications.find(c => c.ticket_id === t.ticket_id);
+    return tc && tc.isAuto;
+  }).forEach(t => {
+    const tc = MODEL.ticketClassifications.find(c => c.ticket_id === t.ticket_id);
+    if (!tc) return;
+    const updated = getAutoResponse(tc);
+    tc.autoResponse = updated;
+    const el = document.querySelector(`#tc-${t.ticket_id} .ai-response`);
+    if (el) {
+      const label = el.querySelector('.ai-response-label');
+      el.textContent = updated;
+      if (label) el.prepend(label);
+    }
+  });
 }
 
 function classifyAllTickets() {
@@ -810,6 +930,7 @@ function renderTickets() {
             <span class="ticket-channel">${t.channel}</span>
             <span style="color:var(--muted);margin-left:8px">${ltv}</span>
           </div>
+          <div id="ship-${t.ticket_id}"><span class="ship-loading">cargando envío · · ·</span></div>
           <div class="ai-response">
             <div class="ai-response-label">✓ AUTO-ENVIADO</div>
             ${t.autoResponse}
@@ -850,6 +971,7 @@ function renderTickets() {
         <div class="ticket-meta">
           <span class="ticket-channel">${t.channel}</span>
         </div>
+        <div id="ship-${t.ticket_id}"><span class="ship-loading">cargando envío · · ·</span></div>
         <div class="ai-response draft" id="draft-${t.ticket_id}">
           <div class="ai-response-label">📝 BORRADOR IA — PENDIENTE APROBACIÓN</div>
           <div id="draft-text-${t.ticket_id}" class="generating">Generando borrador...</div>
@@ -1007,6 +1129,12 @@ ${criticalSku.map(i => `- ${i.sku} (${i.product_name} ${i.size}): ${i.inventory_
 TICKETS VIP URGENTES:
 ${vipTickets.map(t => `- ${t.ticket_id}: "${t.support_ticket_message}" — LTV ${MODEL.byCustomer[t.customer_id] ? Math.round(MODEL.byCustomer[t.customer_id].customer_lifetime_value) : '?'}€`).join('\n')}
 
+ESTADO LOGÍSTICO EN TIEMPO REAL (${Object.keys(MODEL.shipping).length} pedidos):
+${Object.values(MODEL.shipping).map(s => {
+  const cfg = SHIP_STATUS_MAP[s.shipping_status] || {};
+  return `${s.order_id}: ${cfg.label || s.shipping_status}, ETA ${s.estimated_delivery_date}, riesgo ${Math.round((s.delay_risk||0)*100)}%${s.delay_reason ? ' ('+s.delay_reason+')' : ''}${s.requires_manual_review ? ' ⚠ REVISIÓN MANUAL' : ''}${s.delivery_attempts > 0 ? ' · '+s.delivery_attempts+' intentos' : ''}`;
+}).join('\n')}
+
 INVENTARIO COMPLETO (ordenado por riesgo):
 ${[...DATA.inventory]
     .map(i => ({ ...i, _risk: i.inventory_available_units > 0 ? (i.sell_through_rate_last_hour * i.product_page_views_last_hour) / i.inventory_available_units : 9999 }))
@@ -1131,6 +1259,76 @@ function updateTopbarStats() {
   document.getElementById('refresh-time').textContent = 'ACTUALIZADO ' + new Date().toLocaleTimeString('es', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
 }
 
+// ─── SHIPPING API ────────────────────────────────────────────────────────────
+async function fetchShipping(orderId) {
+  try {
+    const res = await fetch(
+      `https://lkuutmnykcnbfmbpopcu.functions.supabase.co/api/shipping-status/${orderId}`,
+      { headers: { 'X-Candidate-Id': CANDIDATE_ID } }
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    MODEL.shipping[orderId] = data;
+    return data;
+  } catch(e) { return null; }
+}
+
+async function loadShippingData() {
+  // Ticket orders + non-paid orders (processing / packed / payment_review)
+  const ticketIds  = DATA.tickets.map(t => t.order_id).filter(Boolean);
+  const nonPaidIds = DATA.orders
+    .filter(o => ['processing', 'packed', 'payment_review'].includes(o.order_status))
+    .map(o => o.order_id);
+  const ids = [...new Set([...ticketIds, ...nonPaidIds])];
+
+  // Batched fetch — 5 concurrent
+  const BATCH = 5;
+  for (let i = 0; i < ids.length; i += BATCH) {
+    await Promise.all(ids.slice(i, i + BATCH).map(id => fetchShipping(id)));
+    // Update ticket cards progressively as each batch arrives
+    ids.slice(i, i + BATCH).forEach(id => {
+      const ticket = DATA.tickets.find(t => t.order_id === id);
+      if (ticket && MODEL.shipping[id]) updateTicketShippingUI(ticket.ticket_id, MODEL.shipping[id]);
+    });
+  }
+
+  // Re-run alert engine now that shipping data is populated
+  runAlertEngine();
+  // Invalidate system context cache so War Room gets shipping data
+  systemContextCache = '';
+}
+
+function shippingBadgeHTML(s) {
+  const cfg = SHIP_STATUS_MAP[s.shipping_status] || { icon: '?', label: s.shipping_status, cls: 'ship-unknown' };
+  const risk = s.delay_risk || 0;
+  const riskPct = Math.round(risk * 100);
+  const riskCls = risk >= 0.6 ? 'ship-risk-high' : risk >= 0.3 ? 'ship-risk-mid' : 'ship-risk-low';
+  const eta = s.estimated_delivery_date
+    ? new Date(s.estimated_delivery_date + 'T12:00:00').toLocaleDateString('es', { weekday:'short', day:'numeric', month:'short' })
+    : '—';
+  const attempts = s.delivery_attempts > 0
+    ? `<span class="ship-manual">${s.delivery_attempts} intento${s.delivery_attempts > 1 ? 's' : ''}</span> · ` : '';
+  const reason = s.delay_reason ? DELAY_REASON_LABELS[s.delay_reason] || s.delay_reason : null;
+  const manual = s.requires_manual_review
+    ? `<div class="ship-detail ship-manual">⚠ REQUIERE REVISIÓN MANUAL</div>` : '';
+
+  return `
+    <div class="ship-row">
+      <div class="ship-top">
+        <span class="ship-status ${cfg.cls}">${cfg.icon} ${cfg.label}</span>
+        <span class="ship-eta">ETA <span>${eta}</span></span>
+      </div>
+      <div class="ship-risk-bar"><div class="ship-risk-fill ${riskCls}" style="width:${riskPct}%"></div></div>
+      <div class="ship-detail">${attempts}Riesgo retraso: ${riskPct}%${reason ? ' · ' + reason : ''}</div>
+      ${manual}
+    </div>`;
+}
+
+function updateTicketShippingUI(ticketId, shippingData) {
+  const el = document.getElementById(`ship-${ticketId}`);
+  if (el) el.innerHTML = shippingBadgeHTML(shippingData);
+}
+
 // ─── DATA EXPLORER ───────────────────────────────────────────────────────────
 const DE_TABS_CONFIG = {
   inventory:  { label: 'INVENTARIO',         key: 'inventory' },
@@ -1139,6 +1337,7 @@ const DE_TABS_CONFIG = {
   customers:  { label: 'CLIENTES',            key: 'customers' },
   campaigns:  { label: 'CAMPAÑAS',            key: 'campaigns' },
   orderItems: { label: 'DESGLOSE PEDIDOS',    key: 'orderItems' },
+  shipping:   { label: 'LOGÍSTICA',           key: 'shipping'   },
 };
 let deCurrentTab = 'inventory';
 let deSortCol = null;
@@ -1157,8 +1356,8 @@ function switchTab(tab) {
   deSortCol = null;
   document.getElementById('de-search').value = '';
   // Update tab active state
+  const keys = Object.keys(DE_TABS_CONFIG);
   document.querySelectorAll('.de-tab').forEach((btn, i) => {
-    const keys = Object.keys(DE_TABS_CONFIG);
     btn.classList.toggle('active', keys[i] === tab);
   });
   renderDETable();
@@ -1167,6 +1366,9 @@ function switchTab(tab) {
 function filterTable() { renderDETable(); }
 
 function renderDETable() {
+  // Special case: shipping tab uses MODEL.shipping (not DATA)
+  if (deCurrentTab === 'shipping') { renderShippingTable(); return; }
+
   const rawData = DATA[deCurrentTab] || [];
   if (!rawData.length) {
     document.getElementById('de-table-wrap').innerHTML = '<div class="empty-state">Sin datos para este archivo.</div>';
@@ -1233,8 +1435,87 @@ function sortDE(col) {
   renderDETable();
 }
 
+function renderShippingTable() {
+  const raw = Object.values(MODEL.shipping);
+  const search = (document.getElementById('de-search').value || '').toLowerCase().trim();
+
+  // Enrich with order info
+  let rows = raw.map(s => {
+    const order = MODEL.byOrder[s.order_id] || {};
+    const customer = MODEL.byCustomer[order.customer_id] || {};
+    const ticket = DATA.tickets.find(t => t.order_id === s.order_id);
+    return {
+      order_id: s.order_id,
+      shipping_status: s.shipping_status,
+      estimated_delivery_date: s.estimated_delivery_date,
+      delay_risk_pct: Math.round((s.delay_risk || 0) * 100) + '%',
+      delay_reason: s.delay_reason || '—',
+      delivery_attempts: s.delivery_attempts,
+      requires_manual_review: s.requires_manual_review,
+      customer_id: order.customer_id || '—',
+      is_vip: customer.is_vip || false,
+      order_status: order.order_status || '—',
+      ticket_id: ticket ? ticket.ticket_id : '—',
+      shipping_city: order.shipping_city || '—',
+    };
+  });
+
+  if (search) rows = rows.filter(r => Object.values(r).some(v => String(v).toLowerCase().includes(search)));
+
+  if (deSortCol) {
+    rows = [...rows].sort((a, b) => {
+      const av = a[deSortCol]; const bv = b[deSortCol];
+      return typeof av === 'number' && typeof bv === 'number'
+        ? (av - bv) * deSortDir : String(av).localeCompare(String(bv)) * deSortDir;
+    });
+  }
+
+  if (!rows.length) {
+    document.getElementById('de-row-count').textContent = Object.keys(MODEL.shipping).length === 0
+      ? 'CARGANDO DATOS...' : '0 FILAS';
+    document.getElementById('de-table-wrap').innerHTML =
+      Object.keys(MODEL.shipping).length === 0
+        ? '<div class="empty-state" style="padding:40px">Cargando datos logísticos — espera unos segundos...</div>'
+        : '<div class="empty-state">Sin resultados</div>';
+    return;
+  }
+
+  document.getElementById('de-row-count').textContent = `${rows.length} PEDIDO${rows.length !== 1 ? 'S' : ''}`;
+  const cols = Object.keys(rows[0]);
+
+  const thead = cols.map(c => {
+    const cls = deSortCol === c ? (deSortDir === 1 ? 'sort-asc' : 'sort-desc') : '';
+    return `<th class="${cls}" onclick="sortDE('${c}')">${c}</th>`;
+  }).join('');
+
+  const tbody = rows.map(r => {
+    const cells = cols.map(c => {
+      const val = r[c] ?? '';
+      let cls = '';
+      if (c === 'shipping_status') {
+        const cfg = SHIP_STATUS_MAP[val] || {};
+        cls = cfg.cls || '';
+      } else if (c === 'requires_manual_review' && val) cls = 'de-cell-critical';
+      else if (c === 'is_vip' && val) cls = 'de-cell-vip';
+      else if (c === 'delay_risk_pct') {
+        const pct = parseInt(val);
+        cls = pct >= 60 ? 'de-cell-critical' : pct >= 30 ? '' : 'de-cell-ok';
+      }
+      const display = val === true ? '⚠ SÍ' : val === false ? '—' : val;
+      return `<td class="${cls}">${display}</td>`;
+    }).join('');
+    return `<tr>${cells}</tr>`;
+  }).join('');
+
+  document.getElementById('de-table-wrap').innerHTML = `
+    <table class="de-table">
+      <thead><tr>${thead}</tr></thead>
+      <tbody>${tbody}</tbody>
+    </table>`;
+}
+
 function downloadCurrentCSV() {
-  const data = DATA[deCurrentTab];
+  const data = deCurrentTab === 'shipping' ? Object.values(MODEL.shipping) : DATA[deCurrentTab];
   if (!data || !data.length) return;
   const cols = Object.keys(data[0]);
   const csv = [cols.join(','), ...data.map(r => cols.map(c => {
@@ -1277,6 +1558,8 @@ async function boot() {
     document.getElementById('loading-screen').style.display = 'none';
     document.getElementById('topbar').style.display = 'flex';
     document.getElementById('main').style.display = 'grid';
+    // Load shipping data async — UI is already shown, updates happen progressively
+    loadShippingData().then(() => refreshAutoResponses());
   }, 400);
 
   // Refresh loop every 60s

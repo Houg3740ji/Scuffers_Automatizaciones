@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Scuffers — OPS BRAIN</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Barlow+Condensed:wght@400;600;700;900&display=swap');
 
@@ -308,6 +309,115 @@
   #war-send:hover { background: var(--green-bright); }
   #war-send:disabled { background: var(--surface2); color: var(--muted); cursor: not-allowed; }
 
+  /* API SETTINGS */
+  #api-settings {
+    position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,0.8);
+    display: none; align-items: center; justify-content: center;
+  }
+  #api-settings.active { display: flex; }
+  .api-modal {
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 28px 32px; width: 420px; display: flex; flex-direction: column; gap: 16px;
+  }
+  .api-modal-title {
+    font-family: var(--display); font-size: 18px; font-weight: 900;
+    letter-spacing: 0.2em; text-transform: uppercase;
+  }
+  .api-modal p { font-size: 11px; color: var(--muted); line-height: 1.6; }
+  .api-modal input {
+    background: var(--bg); border: 1px solid var(--border); color: var(--text);
+    padding: 10px 14px; font-family: var(--mono); font-size: 11px;
+    outline: none; width: 100%; transition: border-color 0.15s;
+    letter-spacing: 0.05em;
+  }
+  .api-modal input:focus { border-color: var(--green); }
+  .api-modal-row { display: flex; gap: 8px; }
+  .btn-primary {
+    font-family: var(--display); font-size: 12px; font-weight: 900; letter-spacing: 0.15em;
+    text-transform: uppercase; padding: 9px 20px; background: var(--green); color: white;
+    border: none; cursor: pointer; flex: 1; transition: background 0.15s;
+  }
+  .btn-primary:hover { background: var(--green-bright); }
+  .btn-secondary {
+    font-family: var(--display); font-size: 12px; font-weight: 900; letter-spacing: 0.15em;
+    text-transform: uppercase; padding: 9px 16px; background: transparent;
+    color: var(--muted); border: 1px solid var(--border); cursor: pointer; transition: all 0.15s;
+  }
+  .btn-secondary:hover { border-color: var(--text); color: var(--text); }
+  .api-status { font-size: 10px; letter-spacing: 0.1em; padding: 4px 0; }
+  .api-status.ok { color: var(--green-bright); }
+  .api-status.err { color: var(--red-bright); }
+
+  /* DASHBOARD */
+  #dashboard {
+    position: fixed; inset: 0; z-index: 200;
+    background: var(--bg); display: none; flex-direction: column; overflow: hidden;
+  }
+  #dashboard.active { display: flex; }
+  .dash-header {
+    padding: 12px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 14px; background: var(--surface);
+    flex-shrink: 0;
+  }
+  .dash-title {
+    font-family: var(--display); font-size: 18px; font-weight: 900;
+    letter-spacing: 0.25em; text-transform: uppercase;
+  }
+  .dash-close {
+    margin-left: auto; font-family: var(--display); font-size: 11px; font-weight: 900;
+    letter-spacing: 0.15em; padding: 6px 14px; border: 1px solid var(--border);
+    background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s;
+  }
+  .dash-close:hover { border-color: var(--text); color: var(--text); }
+  .dash-kpi-row {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px;
+    background: var(--border); border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .kpi-card {
+    background: var(--surface); padding: 14px 18px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .kpi-label { font-size: 9px; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; }
+  .kpi-value { font-family: var(--display); font-size: 28px; font-weight: 900; letter-spacing: 0.05em; }
+  .kpi-sub { font-size: 10px; color: var(--muted); }
+  .kpi-card.red .kpi-value { color: var(--red-bright); }
+  .kpi-card.amber .kpi-value { color: var(--amber-bright); }
+  .kpi-card.green .kpi-value { color: var(--green-bright); }
+
+  .dash-charts {
+    display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr 1fr;
+    gap: 1px; background: var(--border); flex: 1; overflow: hidden;
+  }
+  .chart-card {
+    background: var(--surface); padding: 16px; display: flex; flex-direction: column; gap: 10px;
+    overflow: hidden;
+  }
+  .chart-card.wide { grid-column: span 2; }
+  .chart-title {
+    font-family: var(--display); font-size: 11px; font-weight: 900;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted);
+    flex-shrink: 0;
+  }
+  .chart-wrap { flex: 1; position: relative; min-height: 0; }
+  .chart-wrap canvas { max-height: 100% !important; }
+
+  /* FILE UPLOAD */
+  .de-upload {
+    font-family: var(--display); font-size: 10px; font-weight: 900; letter-spacing: 0.15em;
+    padding: 6px 14px; border: 1px solid var(--border); background: transparent;
+    color: var(--muted); cursor: pointer; transition: all 0.15s;
+  }
+  .de-upload:hover { border-color: var(--amber-bright); color: var(--amber-bright); }
+  #de-file-input { display: none; }
+  .upload-toast {
+    position: fixed; bottom: 24px; right: 24px; z-index: 999;
+    background: var(--green-dim); border: 1px solid var(--green);
+    color: var(--green-bright); padding: 12px 20px;
+    font-family: var(--display); font-size: 12px; font-weight: 700; letter-spacing: 0.15em;
+    animation: fadeInUp 0.3s; pointer-events: none;
+  }
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
   /* SHIPPING STATUS */
   .ship-row {
     margin-top: 8px; padding: 7px 10px;
@@ -466,7 +576,9 @@
   </div>
   <div class="topbar-right">
     <div class="refresh-time" id="refresh-time">ACTUALIZADO —</div>
+    <button onclick="openDashboard()" style="font-family:var(--display);font-size:13px;font-weight:900;letter-spacing:0.2em;text-transform:uppercase;padding:8px 18px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='var(--green)';this.style.color='var(--green-bright)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">📈 DASHBOARD</button>
     <button onclick="openDataExplorer()" style="font-family:var(--display);font-size:13px;font-weight:900;letter-spacing:0.2em;text-transform:uppercase;padding:8px 18px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='var(--green)';this.style.color='var(--green-bright)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">📊 DATOS</button>
+    <button id="api-key-btn" onclick="openApiSettings()" style="font-family:var(--display);font-size:11px;font-weight:900;letter-spacing:0.15em;text-transform:uppercase;padding:8px 14px;border:1px solid var(--red);background:transparent;color:var(--red);cursor:pointer;transition:all 0.2s">⚙ API KEY</button>
     <button id="war-room-toggle" onclick="toggleWarRoom()">⬛ WAR ROOM</button>
   </div>
 </div>
@@ -522,6 +634,43 @@
 
 </div>
 
+<!-- API SETTINGS MODAL -->
+<div id="api-settings">
+  <div class="api-modal">
+    <div class="api-modal-title">⚙ Claude API Key</div>
+    <p>Pega tu API key de Anthropic para activar los borradores automáticos y el War Room AI.<br>Se guarda solo en memoria — no se almacena en ningún lado.</p>
+    <input type="password" id="api-key-input" placeholder="sk-ant-api03-..." autocomplete="off">
+    <div id="api-key-status" class="api-status"></div>
+    <div class="api-modal-row">
+      <button class="btn-primary" onclick="saveApiKey()">GUARDAR Y ACTIVAR</button>
+      <button class="btn-secondary" onclick="closeApiSettings()">CANCELAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD OVERLAY -->
+<div id="dashboard">
+  <div class="dash-header">
+    <div class="dash-title">📈 DASHBOARD — TIEMPO REAL</div>
+    <div style="font-size:10px;color:var(--muted);letter-spacing:0.1em" id="dash-updated">—</div>
+    <button class="dash-close" onclick="closeDashboard()">CERRAR ✕</button>
+  </div>
+  <div class="dash-kpi-row">
+    <div class="kpi-card"><div class="kpi-label">PEDIDOS TOTALES</div><div class="kpi-value" id="kpi-orders">—</div><div class="kpi-sub" id="kpi-orders-sub">—</div></div>
+    <div class="kpi-card green"><div class="kpi-label">REVENUE ESTIMADO</div><div class="kpi-value" id="kpi-revenue">—</div><div class="kpi-sub">suma order_value</div></div>
+    <div class="kpi-card red"><div class="kpi-label">SKUs CRÍTICOS</div><div class="kpi-value" id="kpi-sku-crit">—</div><div class="kpi-sub">disponibles &lt; 10 uds</div></div>
+    <div class="kpi-card amber"><div class="kpi-label">TICKETS ABIERTOS</div><div class="kpi-value" id="kpi-tickets">—</div><div class="kpi-sub" id="kpi-tickets-sub">—</div></div>
+    <div class="kpi-card red"><div class="kpi-label">RIESGO RETRASO &gt;60%</div><div class="kpi-value" id="kpi-delay">—</div><div class="kpi-sub">pedidos con API logística</div></div>
+  </div>
+  <div class="dash-charts">
+    <div class="chart-card"><div class="chart-title">PEDIDOS POR ESTADO</div><div class="chart-wrap"><canvas id="chart-orders-status"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">TICKETS POR CANAL Y URGENCIA</div><div class="chart-wrap"><canvas id="chart-tickets"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">ESTADO LOGÍSTICO</div><div class="chart-wrap"><canvas id="chart-shipping"></canvas></div></div>
+    <div class="chart-card wide"><div class="chart-title">INVENTARIO — UNIDADES DISPONIBLES POR SKU</div><div class="chart-wrap"><canvas id="chart-inventory"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">SELL-THROUGH RATE / HORA</div><div class="chart-wrap"><canvas id="chart-str"></canvas></div></div>
+  </div>
+</div>
+
 <!-- DATA EXPLORER OVERLAY -->
 <div id="data-explorer">
   <div class="de-header">
@@ -541,6 +690,8 @@
   <div class="de-toolbar">
     <input type="text" id="de-search" placeholder="Buscar en cualquier columna..." oninput="filterTable()" autocomplete="off">
     <span class="de-row-count" id="de-row-count"></span>
+    <input type="file" id="de-file-input" accept=".csv,.xlsx,.xls" onchange="handleFileUpload(event)">
+    <button class="de-upload" onclick="document.getElementById('de-file-input').click()">⬆ IMPORTAR EXCEL / CSV</button>
     <button class="de-download" onclick="downloadCurrentCSV()">⬇ DESCARGAR CSV</button>
   </div>
   <div class="de-table-wrap" id="de-table-wrap">
@@ -582,6 +733,9 @@
 const DATA = { inventory: [], tickets: [], orders: [], customers: [], campaigns: [], orderItems: [] };
 const MODEL = { byOrder: {}, byCustomer: {}, bySku: {}, alertsGenerated: [], ticketClassifications: [], shipping: {} };
 const CANDIDATE_ID = 'SCF-2026-2649';
+let claudeApiKey = '';
+let dashboardOpen = false;
+const chartInstances = {};
 
 const SHIP_STATUS_MAP = {
   delivered:          { icon: '✓', label: 'ENTREGADO',       cls: 'ship-delivered' },
@@ -1008,32 +1162,37 @@ ${intent === 'cambio_direccion' ? '- CAMBIO DE DIRECCIÓN: confirmar que se ha r
 
 Escribe una respuesta breve (3-4 líneas) que resuelva la preocupación del cliente. Nunca menciones que eres una IA.`;
 
+  const el = document.getElementById(`draft-text-${ticket.ticket_id}`);
+  if (!claudeApiKey) {
+    if (el) { el.classList.remove('generating'); el.innerHTML = '<span style="color:var(--amber-bright)">⚠ Configura la API key de Claude para generar borradores automáticos.</span>'; }
+    return;
+  }
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'x-api-key': claudeApiKey,
         'anthropic-version': '2023-06-01',
         'anthropic-dangerous-direct-browser-access': 'true'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 600,
         messages: [{ role: 'user', content: prompt }]
       })
     });
     const data = await res.json();
     const text = data.content && data.content[0] ? data.content[0].text : null;
     if (text) {
-      const el = document.getElementById(`draft-text-${ticket.ticket_id}`);
       if (el) { el.classList.remove('generating'); el.textContent = text; }
-      // store draft
       const tc = MODEL.ticketClassifications.find(t => t.ticket_id === ticket.ticket_id);
       if (tc) tc.generatedDraft = text;
+    } else {
+      if (el) { el.classList.remove('generating'); el.textContent = data.error ? `Error: ${data.error.message}` : '[Sin respuesta]'; el.style.color = 'var(--red)'; }
     }
   } catch(e) {
-    const el = document.getElementById(`draft-text-${ticket.ticket_id}`);
-    if (el) { el.classList.remove('generating'); el.textContent = '[Error generando borrador — redactar manualmente]'; el.style.color = 'var(--red)'; }
+    if (el) { el.classList.remove('generating'); el.textContent = '[Error de conexión]'; el.style.color = 'var(--red)'; }
   }
 }
 
@@ -1215,16 +1374,23 @@ async function sendWarRoomMessage() {
   const thinkingDiv = addDOMMessage('assistant', 'Analizando datos operacionales...');
   thinkingDiv.querySelector('.msg-bubble').classList.add('thinking');
 
+  if (!claudeApiKey) {
+    thinkingDiv.querySelector('.msg-bubble').classList.remove('thinking');
+    thinkingDiv.querySelector('.msg-bubble').innerHTML = `<div class="msg-sender">OPS BRAIN AI</div><span style="color:var(--amber-bright)">⚠ Configura la API key de Claude primero — botón <strong>⚙ API KEY</strong> en la barra superior.</span>`;
+    btn.disabled = false;
+    return;
+  }
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'x-api-key': claudeApiKey,
         'anthropic-version': '2023-06-01',
         'anthropic-dangerous-direct-browser-access': 'true'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 1000,
         system: buildSystemContext(),
         messages: apiMessages
@@ -1528,8 +1694,290 @@ function downloadCurrentCSV() {
   a.click();
 }
 
+// ─── API SETTINGS ────────────────────────────────────────────────────────────
+function openApiSettings() {
+  document.getElementById('api-settings').classList.add('active');
+  document.getElementById('api-key-input').value = claudeApiKey || '';
+  document.getElementById('api-key-status').textContent = claudeApiKey ? '✓ API key cargada en memoria' : '';
+  document.getElementById('api-key-status').className = 'api-status ' + (claudeApiKey ? 'ok' : '');
+}
+function closeApiSettings() {
+  document.getElementById('api-settings').classList.remove('active');
+}
+async function saveApiKey() {
+  const val = document.getElementById('api-key-input').value.trim();
+  if (!val) { document.getElementById('api-key-status').textContent = 'Pega una API key válida.'; document.getElementById('api-key-status').className = 'api-status err'; return; }
+  document.getElementById('api-key-status').textContent = 'Verificando...'; document.getElementById('api-key-status').className = 'api-status';
+  // Quick ping to verify key
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': val, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 10, messages: [{ role: 'user', content: 'hi' }] })
+    });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error.message);
+    claudeApiKey = val;
+    document.getElementById('api-key-status').textContent = '✓ API key verificada y activa';
+    document.getElementById('api-key-status').className = 'api-status ok';
+    // Update topbar button
+    const btn = document.getElementById('api-key-btn');
+    btn.textContent = '⚙ AI ACTIVA'; btn.style.borderColor = 'var(--green)'; btn.style.color = 'var(--green-bright)';
+    // Re-generate pending drafts
+    MODEL.ticketClassifications.filter(t => !t.isAuto).forEach(t => generateDraft(t));
+    setTimeout(closeApiSettings, 1200);
+  } catch(e) {
+    document.getElementById('api-key-status').textContent = 'Error: ' + (e.message || 'API key inválida');
+    document.getElementById('api-key-status').className = 'api-status err';
+  }
+}
+
+// ─── DASHBOARD ────────────────────────────────────────────────────────────────
+const CHART_COLORS = {
+  green:  '#2B7551', greenBright: '#3a9e6d', greenDim: '#1d5238',
+  amber:  '#f39c12', red: '#e74c3c', blue: '#2980b9',
+  purple: '#8e44ad', muted: '#555555',
+  palette: ['#2B7551','#3a9e6d','#f39c12','#2980b9','#e74c3c','#8e44ad','#1abc9c','#d35400'],
+};
+
+function initChartDefaults() {
+  Chart.defaults.color = '#666666';
+  Chart.defaults.borderColor = '#2A2A2A';
+  Chart.defaults.font.family = "'Space Mono', monospace";
+  Chart.defaults.font.size = 10;
+  Chart.defaults.plugins.legend.labels.color = '#888';
+  Chart.defaults.plugins.legend.labels.boxWidth = 10;
+  Chart.defaults.plugins.legend.labels.padding = 12;
+}
+
+function destroyChart(id) {
+  if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; }
+}
+
+function openDashboard() {
+  document.getElementById('dashboard').classList.add('active');
+  dashboardOpen = true;
+  renderAllCharts();
+}
+function closeDashboard() {
+  document.getElementById('dashboard').classList.remove('active');
+  dashboardOpen = false;
+}
+
+function updateKPIs() {
+  const orders = DATA.orders;
+  const revenue = orders.reduce((s, o) => {
+    const v = parseFloat(String(o.order_value || '').replace(/[€,]/g,''));
+    return s + (isNaN(v) ? 0 : v);
+  }, 0);
+  const critSkus = DATA.inventory.filter(i => i.inventory_available_units < 10).length;
+  const reviewCount = orders.filter(o => o.order_status === 'payment_review').length;
+  const highDelay = Object.values(MODEL.shipping).filter(s => s.delay_risk > 0.6).length;
+  const vipPending = MODEL.ticketClassifications.filter(t => !t.isAuto && t.customer && t.customer.is_vip).length;
+
+  document.getElementById('kpi-orders').textContent = orders.length;
+  document.getElementById('kpi-orders-sub').textContent = `${reviewCount} en payment_review`;
+  document.getElementById('kpi-revenue').textContent = revenue > 0 ? revenue.toFixed(0) + '€' : '—';
+  document.getElementById('kpi-sku-crit').textContent = critSkus;
+  document.getElementById('kpi-tickets').textContent = DATA.tickets.length;
+  document.getElementById('kpi-tickets-sub').textContent = `${vipPending} VIP pendientes`;
+  document.getElementById('kpi-delay').textContent = highDelay;
+  document.getElementById('dash-updated').textContent = 'ACTUALIZADO ' + new Date().toLocaleTimeString('es', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+function renderAllCharts() {
+  updateKPIs();
+  renderOrdersStatusChart();
+  renderTicketsChart();
+  renderShippingChart();
+  renderInventoryChart();
+  renderSTRChart();
+}
+
+function renderOrdersStatusChart() {
+  destroyChart('orders-status');
+  const ctx = document.getElementById('chart-orders-status').getContext('2d');
+  const counts = {};
+  DATA.orders.forEach(o => { counts[o.order_status] = (counts[o.order_status] || 0) + 1; });
+  const labels = Object.keys(counts);
+  const colorMap = { paid: CHART_COLORS.green, processing: CHART_COLORS.blue, packed: CHART_COLORS.greenBright, payment_review: CHART_COLORS.red };
+  chartInstances['orders-status'] = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: labels.map(l => l.toUpperCase()),
+      datasets: [{ data: labels.map(l => counts[l]), backgroundColor: labels.map(l => colorMap[l] || CHART_COLORS.muted), borderWidth: 0, hoverOffset: 4 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '65%',
+      plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: c => ` ${c.label}: ${c.raw} pedidos` } } }
+    }
+  });
+}
+
+function renderTicketsChart() {
+  destroyChart('tickets');
+  const ctx = document.getElementById('chart-tickets').getContext('2d');
+  const channels = [...new Set(DATA.tickets.map(t => t.channel))];
+  const urgencies = ['urgent','high','medium','low'];
+  const urgColors = [CHART_COLORS.red, CHART_COLORS.amber, CHART_COLORS.blue, CHART_COLORS.muted];
+  const datasets = urgencies.map((u, i) => ({
+    label: u.toUpperCase(),
+    data: channels.map(ch => DATA.tickets.filter(t => t.channel === ch && t.support_ticket_urgency === u).length),
+    backgroundColor: urgColors[i], borderWidth: 0,
+  }));
+  chartInstances['tickets'] = new Chart(ctx, {
+    type: 'bar',
+    data: { labels: channels.map(c => c.toUpperCase()), datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: { x: { stacked: true, grid: { color: '#2A2A2A' } }, y: { stacked: true, grid: { color: '#2A2A2A' }, ticks: { stepSize: 1 } } },
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
+}
+
+function renderShippingChart() {
+  destroyChart('shipping');
+  const ctx = document.getElementById('chart-shipping').getContext('2d');
+  const shippingData = Object.values(MODEL.shipping);
+  if (!shippingData.length) {
+    ctx.fillStyle = '#444'; ctx.font = '11px Space Mono'; ctx.textAlign = 'center';
+    ctx.fillText('Cargando datos logísticos...', ctx.canvas.width / 2, ctx.canvas.height / 2);
+    return;
+  }
+  const counts = {};
+  shippingData.forEach(s => { counts[s.shipping_status] = (counts[s.shipping_status] || 0) + 1; });
+  const labels = Object.keys(counts);
+  const colorMap = { delivered: CHART_COLORS.green, out_for_delivery: CHART_COLORS.greenBright, in_transit: CHART_COLORS.blue, at_sorting_center: '#5dade2', picked_up: '#85c1e9', label_created: CHART_COLORS.muted, delayed: CHART_COLORS.red };
+  chartInstances['shipping'] = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: labels.map(l => (SHIP_STATUS_MAP[l] || {}).label || l.toUpperCase()),
+      datasets: [{ data: labels.map(l => counts[l]), backgroundColor: labels.map(l => colorMap[l] || '#555'), borderWidth: 0, hoverOffset: 4 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '60%',
+      plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: c => ` ${c.label}: ${c.raw}` } } }
+    }
+  });
+}
+
+function renderInventoryChart() {
+  destroyChart('inventory');
+  const ctx = document.getElementById('chart-inventory').getContext('2d');
+  const sorted = [...DATA.inventory].sort((a, b) => a.inventory_available_units - b.inventory_available_units);
+  const colors = sorted.map(i => i.inventory_available_units < 5 ? CHART_COLORS.red : i.inventory_available_units < 15 ? CHART_COLORS.amber : CHART_COLORS.green);
+  chartInstances['inventory'] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sorted.map(i => `${i.sku} (${i.size})`),
+      datasets: [{
+        label: 'Uds. disponibles',
+        data: sorted.map(i => i.inventory_available_units),
+        backgroundColor: colors, borderWidth: 0,
+      }, {
+        label: 'Uds. reservadas',
+        data: sorted.map(i => i.inventory_reserved_units),
+        backgroundColor: sorted.map(() => 'rgba(255,255,255,0.07)'), borderWidth: 0,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+      scales: {
+        x: { stacked: true, grid: { color: '#2A2A2A' }, ticks: { stepSize: 10 } },
+        y: { stacked: true, grid: { display: false }, ticks: { font: { size: 9 } } }
+      },
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
+}
+
+function renderSTRChart() {
+  destroyChart('str');
+  const ctx = document.getElementById('chart-str').getContext('2d');
+  const sorted = [...DATA.inventory].sort((a, b) => b.sell_through_rate_last_hour - a.sell_through_rate_last_hour).slice(0, 10);
+  const colors = sorted.map(i => i.sell_through_rate_last_hour > 0.7 ? CHART_COLORS.red : i.sell_through_rate_last_hour > 0.5 ? CHART_COLORS.amber : CHART_COLORS.green);
+  chartInstances['str'] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sorted.map(i => `${i.sku}`),
+      datasets: [{ label: 'STR/hora', data: sorted.map(i => +(i.sell_through_rate_last_hour * 100).toFixed(1)), backgroundColor: colors, borderWidth: 0 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 9 } } },
+        y: { grid: { color: '#2A2A2A' }, max: 100, ticks: { callback: v => v + '%' } }
+      },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.raw}%/h` } } }
+    }
+  });
+}
+
+// ─── FILE UPLOAD ──────────────────────────────────────────────────────────────
+const UPLOAD_KEY_MAP = {
+  inventory:  'inventory',
+  orders:     'orders',
+  tickets:    'tickets',
+  customers:  'customers',
+  campaigns:  'campaigns',
+  orderItems: 'orderItems',
+};
+
+function handleFileUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const key = UPLOAD_KEY_MAP[deCurrentTab];
+  if (!key) { showToast('Este tab no admite importación'); return; }
+
+  const ext = file.name.split('.').pop().toLowerCase();
+  const reader = new FileReader();
+
+  reader.onload = (e) => {
+    if (ext === 'csv') {
+      Papa.parse(e.target.result, {
+        header: true, skipEmptyLines: true, dynamicTyping: true,
+        complete: (r) => applyUploadedData(key, r.data, file.name),
+        error: () => showToast('Error parseando CSV')
+      });
+    } else if (ext === 'xlsx' || ext === 'xls') {
+      // SheetJS not loaded — parse as CSV after detecting delimiter
+      showToast('Formato Excel no soportado directamente. Exporta como CSV primero.');
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+  // Reset input so same file can be re-uploaded
+  event.target.value = '';
+}
+
+function applyUploadedData(key, rows, filename) {
+  if (!rows || !rows.length) { showToast('Archivo vacío o sin datos válidos'); return; }
+  DATA[key] = rows;
+  showToast(`✓ ${rows.length} filas cargadas en ${key.toUpperCase()} (${filename})`);
+
+  // Rebuild model and re-run all engines
+  buildModel();
+  systemContextCache = '';
+  runAlertEngine();
+  classifyAllTickets();
+  renderInventory();
+  renderTickets();
+  updateTopbarStats();
+  if (dashboardOpen) renderAllCharts();
+  renderDETable();
+}
+
+function showToast(msg) {
+  const existing = document.querySelector('.upload-toast');
+  if (existing) existing.remove();
+  const el = document.createElement('div');
+  el.className = 'upload-toast';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
 // ─── BOOT ─────────────────────────────────────────────────────────────────────
 async function boot() {
+  initChartDefaults();
   // Detect file:// protocol — fetch won't work without a server
   if (location.protocol === 'file:') {
     document.getElementById('loading-bar').style.background = 'var(--red)';
@@ -1566,6 +2014,7 @@ async function boot() {
   setInterval(() => {
     runAlertEngine();
     updateTopbarStats();
+    if (dashboardOpen) renderAllCharts();
   }, 60000);
 }
 
